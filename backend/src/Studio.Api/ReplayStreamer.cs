@@ -12,7 +12,8 @@ public sealed record Envelope(string Type, double T, object Data);
 /// card goes out immediately; if Gallery sends the moment to the crew, the crew works on it in
 /// the background and its Control Room messages and upgraded card join the stream when ready.
 /// </summary>
-public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, ILogger? logger = null)
+public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, IReadOnlyList<ViewerProfile> viewers,
+    ILogger? logger = null)
 {
     private const double SnapshotEvery = 5;       // match seconds
     private const double MaxSleepSeconds = 2;     // dead-ball gaps don't stall the stream
@@ -42,6 +43,8 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
                 await send(new Envelope("moment", e.T, m), ct);
                 var template = step.Cards.First(c => c.MomentId == m.Id);
                 await send(new Envelope("card", e.T, template), ct);
+                foreach (var v in viewers.Where(v => Relevance.Shows(v, m)))
+                    await send(new Envelope("card", e.T, TemplateLocalizer.ForViewer(template, v, match.Info)), ct);
                 if (crew is not null) await Dispatch(m, template, pipeline.State, send, ct);
             }
 
@@ -75,9 +78,11 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
         {
             try
             {
-                var result = await crew.RunAsync(briefing, template, () => Volatile.Read(ref _now),
+                var result = await crew.RunAsync(briefing, template, viewers, () => Volatile.Read(ref _now),
                     msg => _outbox.Writer.TryWrite(new Envelope("crew", msg.MatchT, msg)), ct);
                 if (result.Card is { } card) _outbox.Writer.TryWrite(new Envelope("card", Volatile.Read(ref _now), card));
+                foreach (var version in result.Versions.Where(v => v.Verified))
+                    _outbox.Writer.TryWrite(new Envelope("card", Volatile.Read(ref _now), version.Card));
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
             catch (Exception ex)

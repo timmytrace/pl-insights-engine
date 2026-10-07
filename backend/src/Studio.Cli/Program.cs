@@ -5,7 +5,7 @@ using Studio.Engine;
 // studio generate --seed 7 [--out data/sample/seed-7]   writes match.json (metadata) + events.jsonl
 // studio summary  --seed 7                          prints full-time stats for a seed
 // studio moments  --seed 7                          lists the moments and cards the engine finds
-// studio crew     --seed 7                          prints the Control Room transcript (mock model)
+// studio crew     --seed 7 [--viewers analyst.en,casual.es]  prints the Control Room transcript (mock model)
 
 var command = args.FirstOrDefault() ?? "summary";
 var seed = int.Parse(Arg("--seed") ?? "7");
@@ -41,6 +41,7 @@ switch (command)
 
     case "crew":
         var crewPipeline = new MatchPipeline(match.Info);
+        var viewers = ViewerProfile.ParseList(Arg("--viewers") ?? "analyst.en,casual.es,club.fr.home,player.en.H10");
         var crew = new StudioCrew(new ScriptedChatClient(0), new CrewOptions { MaxConcurrentMoments = 100 });
         foreach (var e in match.Events)
         {
@@ -52,8 +53,10 @@ switch (command)
                 Console.WriteLine();
                 Console.WriteLine($"-- {m.Minute}' {m.Kind} --");
                 var template = step.Cards.First(c => c.MomentId == m.Id);
-                await crew.RunAsync(crew.Brief(m, crewPipeline.State), template, () => m.T,
+                var result = await crew.RunAsync(crew.Brief(m, crewPipeline.State), template, viewers, () => m.T,
                     msg => Console.WriteLine($"  {msg.From,-8} {msg.Text}"), CancellationToken.None);
+                foreach (var v in result.Versions)
+                    Console.WriteLine($"    [{v.Viewer.Id}] {v.Card.Headline} | {v.Card.Body}");
             }
         }
         break;

@@ -7,24 +7,43 @@ namespace Studio.Crew;
 /// Ref's rulebook: the deterministic half of fact-checking. Every number in a pitch must match a
 /// fact on the sheet, every claim must cite facts that exist, and claims may not reach beyond
 /// what the sheet can support (season records, certainty). The model only gets a say after
-/// these checks pass.
+/// these checks pass. The same rules run on every translated version The Host writes.
 /// </summary>
 public static partial class RefChecker
 {
     // Phrases the sheet can never back up: we only have this match's data.
-    private static readonly (string Phrase, string Reason)[] Overreach =
-    [
-        ("season", "We only have this match's data, so nothing can be said about the season."),
-        ("all year", "We only have this match's data, so nothing can be said about the year."),
-        ("record", "Records need history the sheet doesn't have."),
-        ("ever", "'Ever' needs history the sheet doesn't have."),
-        ("best in the league", "League comparisons need data the sheet doesn't have."),
-        ("always", "'Always' is a certainty the data can't support."),
-        ("never", "'Never' is a certainty the data can't support."),
-        ("guaranteed", "Nothing in football is guaranteed."),
-        ("definitely", "'Definitely' is a certainty the data can't support."),
-        ("unstoppable", "'Unstoppable' is opinion, not evidence."),
-    ];
+    private static readonly Dictionary<string, (string Phrase, string Reason)[]> Overreach = new()
+    {
+        ["en"] =
+        [
+            ("season", "We only have this match's data, so nothing can be said about the season."),
+            ("all year", "We only have this match's data, so nothing can be said about the year."),
+            ("record", "Records need history the sheet doesn't have."),
+            ("ever", "'Ever' needs history the sheet doesn't have."),
+            ("best in the league", "League comparisons need data the sheet doesn't have."),
+            ("always", "'Always' is a certainty the data can't support."),
+            ("never", "'Never' is a certainty the data can't support."),
+            ("guaranteed", "Nothing in football is guaranteed."),
+            ("definitely", "'Definitely' is a certainty the data can't support."),
+            ("unstoppable", "'Unstoppable' is opinion, not evidence."),
+        ],
+        ["es"] =
+        [
+            ("temporada", "Season claim: we only have this match's data."),
+            ("récord", "Records need history the sheet doesn't have."),
+            ("siempre", "'Siempre' (always) is a certainty the data can't support."),
+            ("nunca", "'Nunca' (never) is a certainty the data can't support."),
+            ("imparable", "'Imparable' is opinion, not evidence."),
+        ],
+        ["fr"] =
+        [
+            ("saison", "Season claim: we only have this match's data."),
+            ("record", "Records need history the sheet doesn't have."),
+            ("toujours", "'Toujours' (always) is a certainty the data can't support."),
+            ("jamais", "'Jamais' (never) is a certainty the data can't support."),
+            ("imparable", "'Imparable' is opinion, not evidence."),
+        ],
+    };
 
     // Numbers that are part of the language of the game rather than claims (scales, the 90 minutes).
     private static readonly HashSet<double> Neutral = [100, 90, 45];
@@ -32,8 +51,6 @@ public static partial class RefChecker
     public static Verdict Check(StoryPitch pitch, FactSheet sheet)
     {
         var reasons = new List<string>();
-        var facts = sheet.Facts;
-
         foreach (var claim in pitch.Claims)
         {
             if (claim.Facts.Count == 0)
@@ -43,6 +60,17 @@ public static partial class RefChecker
         }
 
         var text = string.Join(" ", new[] { pitch.Headline, pitch.Body }.Concat(pitch.Claims.Select(c => c.Text)));
+        var numbers = CheckText(text, sheet, "en", reasons);
+        return new Verdict(reasons.Count == 0, reasons.Distinct().ToList(), pitch.Claims.Count, numbers);
+    }
+
+    /// <summary>Check a finished piece of copy in any supported language. Returns how many numbers were checked.</summary>
+    public static int CheckText(string text, FactSheet sheet, string language, List<string> reasons)
+    {
+        // Spanish and French write 0,89 for 0.89; our numbers never need thousands separators.
+        if (language != "en") text = DecimalComma().Replace(text, "$1.$2");
+
+        var facts = sheet.Facts;
         var numbersChecked = 0;
         foreach (Match m in NumberPattern().Matches(text))
         {
@@ -55,11 +83,11 @@ public static partial class RefChecker
         }
 
         var lower = text.ToLowerInvariant();
-        foreach (var (phrase, reason) in Overreach)
-            if (Regex.IsMatch(lower, $@"\b{Regex.Escape(phrase)}\b"))
-                reasons.Add($"\"{phrase}\": {reason}");
-
-        return new Verdict(reasons.Count == 0, reasons.Distinct().ToList(), pitch.Claims.Count, numbersChecked);
+        foreach (var lang in new[] { "en", language }.Distinct())
+            foreach (var (phrase, reason) in Overreach.GetValueOrDefault(lang, []))
+                if (Regex.IsMatch(lower, $@"\b{Regex.Escape(phrase)}\b"))
+                    reasons.Add($"\"{phrase}\": {reason}");
+        return numbersChecked;
     }
 
     /// <summary>
@@ -83,4 +111,7 @@ public static partial class RefChecker
 
     [GeneratedRegex(@"(?<![\w.])\d{1,3}(?:,\d{3})*(?:\.\d+)?|(?<![\w.])\d+(?:\.\d+)?")]
     private static partial Regex NumberPattern();
+
+    [GeneratedRegex(@"(\d),(\d)")]
+    private static partial Regex DecimalComma();
 }

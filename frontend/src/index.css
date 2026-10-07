@@ -127,7 +127,7 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 /* Crew strip: avatars ringed in each character's role colour. */
 .crew-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
 .crew-member { margin: 0; display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; transition: border-color 0.3s, box-shadow 0.3s; min-width: 0; }
-.crew-member img { width: 56px; height: 56px; border-radius: 50%; background: var(--panel-2); box-shadow: 0 0 0 2px var(--crew); flex: none; }
+.crew-member .avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--panel-2); box-shadow: 0 0 0 2px var(--crew); flex: none; }
 .crew-member figcaption { display: grid; min-width: 0; }
 .crew-member strong { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .crew-member span { font-size: 0.72rem; color: var(--crew); }
@@ -135,7 +135,7 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 @media (max-width: 900px) {
   .crew-bar { grid-template-columns: repeat(5, 1fr); }
   .crew-member { flex-direction: column; text-align: center; padding: 8px 4px; }
-  .crew-member img { width: 44px; height: 44px; }
+  .crew-member .avatar { width: 44px; height: 44px; }
 }
 
 /* Control Room: the crew's transcript, threaded by moment. */
@@ -151,7 +151,7 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .thread { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 6px; }
 .thread header { display: flex; gap: 8px; align-items: center; font-size: 0.75rem; }
 .line { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; font-size: 0.83rem; }
-.line img { width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 0 0 2px var(--crew); background: var(--panel); }
+.line .avatar { width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 0 0 2px var(--crew); background: var(--panel); }
 .line strong { color: var(--crew); margin-right: 6px; font-size: 0.78rem; }
 .line p { margin: 1px 0 0; color: #d6dde6; line-height: 1.35; }
 .line-rejected p { color: #ffb3b3; }
@@ -163,3 +163,52 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .toggle { display: flex !important; grid-auto-flow: column; align-items: center; gap: 6px; font-size: 0.8rem !important; color: var(--text) !important; }
 .toggle input { width: auto; }
 @media (max-width: 1000px) { .tally { grid-template-columns: repeat(2, 1fr); } }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.tabs button { background: transparent; border-color: var(--line); color: var(--muted); }
+.tabs .tab-active { background: var(--panel-2); color: var(--text); border-color: var(--accent); }
+
+/* Fan view: one pane per viewer */
+.fan-view { margin-bottom: 14px; }
+.fan-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.fan-grid-4 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.fan-pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.fan-head { display: flex; align-items: center; gap: 10px; }
+.fan-head .avatar { border-radius: 50%; box-shadow: 0 0 0 2px #ff3b47; background: var(--panel-2); }
+.fan-title { display: grid; flex: 1; min-width: 0; }
+.fan-title strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fan-title span { font-size: 0.75rem; }
+.fan-settings { border: 0; padding: 0; margin: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.fan-settings select { font-size: 0.78rem; padding: 0.25rem 0.4rem; max-width: 100%; }
+.fan-pane .overlay { font-size: 0.85rem; max-width: 80%; }
+.fan-pane .overlay-player-tag { max-width: 50%; }
+.fan-stories { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fan-stories li { background: var(--panel-2); border-radius: 6px; padding: 8px 10px; font-size: 0.84rem; }
+.fan-stories p { margin: 2px 0 0; color: #d6dde6; }
+.add-viewer { margin-top: 10px; }
+.fan-hint { font-size: 0.78rem; margin: 6px 0 0; }
+.icon { background: transparent; border: none; color: var(--muted); padding: 2px 6px; }
+.why-link { background: transparent; border: none; color: #d4e335; padding: 0; font-size: 0.72rem; text-decoration: underline; margin-left: auto; }
+.player-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
+.player-strip div { background: var(--panel-2); border-radius: 6px; padding: 6px 2px; display: grid; }
+.player-strip strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.player-strip span { font-size: 0.64rem; color: var(--muted); }
+.focus-ring { fill: none; stroke: #fff; stroke-width: 0.35; stroke-dasharray: 0.6 0.4; }
+.avatar-animated { object-fit: cover; }
+
+/* Why did that happen? */
+.why-backdrop { position: fixed; inset: 0; background: rgba(3, 6, 10, 0.75); display: grid; place-items: center; padding: 16px; z-index: 50; }
+.why { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; width: min(980px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 16px; display: grid; gap: 12px; }
+.why-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.why-head h3 { margin: 0 0 2px; font-size: 1.1rem; }
+.why-actions { display: flex; gap: 6px; }
+.why-body { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; align-items: start; }
+.why-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.84rem; }
+.why-steps li { display: grid; grid-template-columns: 2.2rem 1fr; padding: 6px 8px; border-radius: 6px; background: var(--panel-2); opacity: 0.35; transition: opacity 0.3s; }
+.why-steps li.done { opacity: 1; }
+.why-steps li.next { opacity: 0.6; outline: 1px dashed var(--line); }
+.why-story { display: grid; grid-template-columns: 40px 1fr; gap: 10px; background: var(--panel-2); border-left: 3px solid #ff3b47; border-radius: 8px; padding: 10px 12px; animation: slide-in 0.35s ease-out; }
+.why-story .avatar { border-radius: 50%; }
+.why-story p { margin: 2px 0 4px; color: #d6dde6; }
+@media (max-width: 760px) { .why-body { grid-template-columns: 1fr; } .player-strip { grid-template-columns: repeat(3, 1fr); } }

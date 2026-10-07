@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CrewMessage, CrewRoleId, Envelope, EventMetrics, InsightCard, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
+import type { CrewMessage, CrewRoleId, Envelope, EventMetrics, InsightCard, MatchEvent, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
 
 export type Status = 'idle' | 'connecting' | 'live' | 'full_time' | 'error'
 
@@ -23,9 +23,16 @@ export interface ReplayState {
   moments: Record<string, Moment>
   crew: CrewMessage[]           // newest last, the Control Room transcript
   tally: CrewTally
-  speaker?: { id: CrewRoleId; until: number }
-  overlays: Partial<Record<Slot, ActiveCard>>
+  speaker?: { id: CrewRoleId; state: string; until: number }
+  /** On-screen graphics per audience: 'studio' or a viewer spec. */
+  overlays: Record<string, Partial<Record<Slot, ActiveCard>>>
+  /** Recent stories per audience, newest first, upgraded in place when the crew's version lands. */
+  stories: Record<string, InsightCard[]>
+  /** Every event so far, for the "Why did that happen?" replay. */
+  events: Record<string, MatchEvent>
 }
+
+export const STUDIO = 'studio'
 
 const TRAIL = 8
 const FEED = 40
@@ -33,9 +40,11 @@ const CREW_LOG = 240
 const FEED_TYPES = new Set(['shot', 'tackle', 'interception', 'foul', 'substitution', 'kickoff', 'period_end'])
 const MIN_ON_SCREEN_MS = 3500
 const SPEAKER_MS = 1800
+const STORIES = 12
+const TAG_KINDS = new Set(['shot_speed', 'sprint_speed', 'milestone'])
 
 const emptyTally: CrewTally = { claimsChecked: 0, numbersChecked: 0, sentBack: 0, approved: 0, upgraded: 0, dropped: 0 }
-const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {} }
+const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {} }
 
 /**
  * Connects to the replay socket and folds the stream into render state. Overlay slots hold
@@ -52,12 +61,15 @@ export function useReplay() {
     socket.current = null
   }, [])
 
-  const start = useCallback((seed: number, speed: number, crew: boolean) => {
+  const start = useCallback((seed: number, speed: number, crew: boolean, viewers: string[]) => {
     stop()
     speedRef.current = speed
     setState({ ...initial, status: 'connecting' })
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
-    const ws = new WebSocket(`${proto}://${location.host}/ws/replay?seed=${seed}&speed=${speed}${crew ? '' : '&crew=off'}`)
+    const query = new URLSearchParams({ seed: String(seed), speed: String(speed) })
+    if (!crew) query.set('crew', 'off')
+    if (viewers.length) query.set('viewers', viewers.join(','))
+    const ws = new WebSocket(`${proto}://${location.host}/ws/replay?${query}`)
     socket.current = ws
 
     ws.onmessage = (msg) => {
@@ -74,9 +86,13 @@ export function useReplay() {
       const now = Date.now()
       setState((s) => {
         let changed = false
-        const overlays = { ...s.overlays }
-        for (const slot of Object.keys(overlays) as Slot[]) {
-          if (overlays[slot]!.until <= now) { delete overlays[slot]; changed = true }
+        const overlays: ReplayState['overlays'] = {}
+        for (const [audience, slots] of Object.entries(s.overlays)) {
+          const kept = { ...slots }
+          for (const slot of Object.keys(kept) as Slot[]) {
+            if (kept[slot]!.until <= now) { delete kept[slot]; changed = true }
+          }
+          overlays[audience] = kept
         }
         const speaker = s.speaker && s.speaker.until <= now ? undefined : s.speaker
         if (speaker !== s.speaker) changed = true
@@ -98,7 +114,7 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
     case 'event': {
       const recent = [...s.recent, env.data].slice(-TRAIL)
       const feed = FEED_TYPES.has(env.data.event.type) ? [env.data, ...s.feed].slice(0, FEED) : s.feed
-      return { ...s, recent, feed }
+      return { ...s, recent, feed, events: { ...s.events, [env.data.event.id]: env.data.event } }
     }
     case 'snapshot':
       return { ...s, snapshot: env.data }
@@ -111,7 +127,11 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
         ...s,
         crew: [...s.crew, env.data].slice(-CREW_LOG),
         tally: tally(s.tally, env.data),
-        speaker: { id: env.data.from, until: Date.now() + SPEAKER_MS },
+        speaker: {
+          id: env.data.from,
+          state: env.data.kind === 'verdict' ? (env.data.data?.approved === false ? 'rejected' : 'approved') : env.data.kind,
+          until: Date.now() + SPEAKER_MS,
+        },
       }
     case 'end':
       return { ...s, status: 'full_time', snapshot: env.data }
@@ -119,14 +139,26 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
 }
 
 function showCard(s: ReplayState, card: InsightCard, speed: number): ReplayState {
+  const audience = card.viewer ?? STUDIO
+  const stories = recordStory(s.stories, audience, card)
   const now = Date.now()
-  const current = s.overlays[card.slot]
+  const slots = s.overlays[audience] ?? {}
+  const current = slots[card.slot]
   // Match-time durations are compressed by the replay speed, with a floor so cards stay readable.
   const until = now + Math.max((card.durationS * 1000) / speed, MIN_ON_SCREEN_MS)
   const upgradesOnScreen = card.replaces != null && current?.card.id === card.replaces
   const free = !current || current.until <= now || card.priority <= current.card.priority
-  if (card.replaces && !upgradesOnScreen && !free) return s
-  return upgradesOnScreen || free ? { ...s, overlays: { ...s.overlays, [card.slot]: { card, until } } } : s
+  if (!upgradesOnScreen && !free) return { ...s, stories }
+  return { ...s, stories, overlays: { ...s.overlays, [audience]: { ...slots, [card.slot]: { card, until } } } }
+}
+
+/** Keep a short per-audience list of story cards; a crew upgrade replaces its template in place. */
+function recordStory(all: ReplayState['stories'], audience: string, card: InsightCard): ReplayState['stories'] {
+  if (TAG_KINDS.has(card.kind)) return all
+  const list = all[audience] ?? []
+  const at = card.replaces ? list.findIndex((c) => c.id === card.replaces) : -1
+  const next = at >= 0 ? list.map((c, i) => (i === at ? card : c)) : [card, ...list].slice(0, STORIES)
+  return { ...all, [audience]: next }
 }
 
 function tally(t: CrewTally, m: CrewMessage): CrewTally {

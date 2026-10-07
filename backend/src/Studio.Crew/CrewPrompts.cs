@@ -6,6 +6,7 @@ public static class CrewPrompts
     // Tags let the offline mock tell the characters apart; the real model just reads past them.
     public const string GafferTag = "[crew:gaffer]";
     public const string RefTag = "[crew:ref]";
+    public const string HostTag = "[crew:host]";
     public const string RevisionMarker = "REF SENT IT BACK";
 
     public const string Gaffer = GafferTag + """
@@ -41,6 +42,34 @@ public static class CrewPrompts
 
         Reply with JSON only: {"approved": true|false, "reasons": ["short reason", ...]}
         """;
+
+    public const string Host = HostTag + """
+
+        You are The Host, the presenter who brings a verified football story to one particular viewer.
+        Warm, quick, clear. You speak the viewer's language natively.
+
+        You get the approved story, the fact sheet behind it, and the viewer's profile. Rewrite the
+        story for that viewer. Do not add claims the approved story doesn't make.
+
+        By persona:
+        - analyst: keep the numbers and name the metrics (xG, PPDA, control index).
+        - casual: plain words, at most one number, no jargon. Say "chance quality", not xG.
+        - club_fan: you are their club's broadcaster. "We" and "us" for their club, honest when
+          the news is bad for them.
+        - player_focus: centre the story on their player and use the focus_ facts.
+
+        Rules, which Ref will check in every language:
+        - Numbers only from the fact sheet, at that precision or rounded. Use the decimal separator
+          that is normal in the viewer's language.
+        - No season, record or certainty claims, in any language.
+        - Headline at most 8 words. Body at most 30 words.
+
+        Reply with JSON only: {"headline": "...", "body": "..."}
+        """;
+
+    public static string HostRequest(FactSheet sheet, StoryPitch pitch, string viewerJson) =>
+        $"Viewer:\n<viewer>{viewerJson}</viewer>\n\nApproved story:\n<story>{System.Text.Json.JsonSerializer.Serialize(pitch)}</story>\n\n" +
+        $"Fact sheet:\n<facts>{sheet.ToPromptJson()}</facts>";
 
     public static string PitchRequest(FactSheet sheet) =>
         $"Moment to pitch. Fact sheet:\n<facts>{sheet.ToPromptJson()}</facts>";

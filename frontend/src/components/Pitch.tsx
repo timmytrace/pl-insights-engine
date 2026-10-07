@@ -4,11 +4,13 @@ import { teamColour } from '../format'
 interface Props {
   info?: MatchInfo
   recent: EventMetrics[]
+  /** Player-focus mode: this player's actions are drawn bolder and ringed. */
+  highlightPlayer?: string
   children?: React.ReactNode   // overlay layer, positioned over the pitch like graphics over a feed
 }
 
 /** A 105 x 68 m pitch drawn in metres, so event coordinates plot directly. */
-export function Pitch({ info, recent, children }: Props) {
+export function Pitch({ info, recent, highlightPlayer, children }: Props) {
   const last = recent.at(-1)?.event
   const ball = last ? { x: last.endX ?? last.x, y: last.endY ?? last.y } : undefined
 
@@ -63,6 +65,10 @@ export function Pitch({ info, recent, children }: Props) {
               stroke={teamColour(info, m.event.team)} strokeWidth={0.35} className="pulse" />
           ) : null,
         )}
+
+        {highlightPlayer && recent.filter((m) => m.event.playerId === highlightPlayer && m.event.x != null).map((m) => (
+          <circle key={`f-${m.event.id}`} cx={m.event.x} cy={m.event.y} r={1.8} className="focus-ring" />
+        ))}
 
         {ball?.x != null && ball.y != null && (
           <circle cx={ball.x} cy={ball.y} r={0.9} className="ball" />

@@ -8,9 +8,10 @@ timed, personalised insight graphics come out, ready to sit on screen alongside 
 Built for the *Synthetic Match Insights Engine for Premier League Studio* hackathon challenge.
 All clubs, players and match data are synthetic. No real match data is used.
 
-> **Status: phase 2 of 4 (agent crew).** The full pipeline and the five-agent crew run end to
-> end with an offline scripted model. The Azure OpenAI path is built and switches on through
-> configuration; it hasn't yet been run against a live deployment. See the [roadmap](#roadmap).
+> **Status: phase 3 of 4 (fan experience).** The pipeline, the five-agent crew and personalised
+> fan views run end to end with an offline scripted model. The Azure OpenAI path is built and
+> switches on through configuration; it hasn't yet been run against a live deployment. See the
+> [roadmap](#roadmap).
 
 ## The crew
 
@@ -70,8 +71,9 @@ sequenceDiagram
   claims. Only then does a second agent judge whether the claims follow from the facts.
 - **Gallery** routes moments (speed tags go straight to air), caps how many the crew works on
   at once, and drops verified stories that arrive after play has moved on.
-- **The Host** swaps the verified card in for the template on screen. Personas and languages
-  arrive in phase 3.
+- **The Host** writes each verified story again for every viewer: their persona, their club or
+  player, their language. Ref re-checks every version in every language (decimal commas
+  included); a version that fails falls back to that viewer's translated template.
 
 The template card always airs first, so the crew never slows the broadcast down. If the model
 is slow or unavailable, viewers still get the template.
@@ -86,7 +88,32 @@ that led to it. The writing layer explains those facts; it is never asked to inv
 | Interpret | `MatchState`: team, player and rolling live metrics |
 | Explain | `MomentDetector` decides *that* a moment matters and attaches the evidence; the agent crew explains *why*, and Ref verifies it |
 | Render | `InsightCard`: slot, priority, show time and duration, so a graphics engine can schedule it without parsing prose |
-| Personalise | Phase 3: persona and language agents rewrite each card per viewer |
+| Personalise | `Relevance` decides what each viewer sees; `HostAgent` rewrites each verified story per viewer and language |
+
+## Made for every fan
+
+The **Fan View** shows the same match to up to four viewers side by side. Each viewer is a
+profile: a persona, a language (English, Spanish or French), and optionally a club or player.
+
+| Persona | Sees | Sounds like |
+|---|---|---|
+| Analyst | Every story | Numbers and named metrics: xG, PPDA, control index |
+| Casual fan | Goals, big chances, momentum swings, speed tags | Plain words, at most one number |
+| Club fan | Their club's stories, plus the goals and chances against them | "We" and "us", honest when it goes wrong |
+| Player focus | Their player's moments and every goal, with a live stat strip | Centred on the player, using their numbers |
+
+Personalisation is also about what a viewer does *not* see: `Relevance` is plain code, so every
+choice is predictable. Translated template graphics air instantly, so nobody waits in English
+for the crew.
+
+**Why did that happen?** Every story has a replay. It steps through the events that led to the
+moment on a pitch, captioning each one from the event data, then shows the verified story. Each
+step and each word traces back to evidence.
+
+**Animated crew.** Avatars play a character clip for the state they're in (Ref raising the red
+card when a pitch is sent back, The Host on air) as soon as the clip is listed in
+[`frontend/public/crew/clips/manifest.json`](frontend/public/crew/clips/manifest.json). Until
+then they show the still portrait.
 
 ## Metrics
 
@@ -177,7 +204,7 @@ identity in Azure), or set it to use a key. `GET /api/health` reports which mode
 | `GET /api/matches/{seed}` | Match metadata and squads |
 | `GET /api/matches/{seed}/events` | Every event |
 | `GET /api/matches/{seed}/summary` | Full-time stats, all moments and all cards |
-| `WS /ws/replay?seed=7&speed=20` | Live stream of `info`, `event`, `snapshot`, `moment`, `card`, `crew` and `end` envelopes. Add `crew=off` for template cards only |
+| `WS /ws/replay?seed=7&speed=20` | Live stream of `info`, `event`, `snapshot`, `moment`, `card`, `crew` and `end` envelopes. Add `crew=off` for template cards only, and `viewers=analyst.en,casual.es,club.fr.home,player.en.H10` for personalised versions |
 
 JSON is camelCase with snake_case enum values.
 
@@ -189,7 +216,7 @@ backend/
   src/Studio.Crew     the five-agent crew on Microsoft Agent Framework, plus the offline model
   src/Studio.Api      ASP.NET Core minimal API + replay WebSocket
   src/Studio.Cli      dataset generation and inspection
-  tests/Studio.Tests  xUnit: metrics, simulator realism, moments, Ref's rulebook, crew loop, API, dataset drift
+  tests/Studio.Tests  xUnit: metrics, simulator realism, moments, Ref's rulebook, crew loop, personas, languages, API, dataset drift
 frontend/             React + TypeScript + Vite overlay UI
 data/sample/          committed synthetic dataset
 ```
@@ -200,7 +227,7 @@ data/sample/          committed synthetic dataset
 |---|---|
 | 7–10 Oct | **1. Foundations:** simulator, metrics, moments, replay API, overlay UI, CI ✅ |
 | 11–15 Oct | **2. Agent crew** on Microsoft Agent Framework: Stats, The Gaffer, Ref, Gallery, The Host, plus the Control Room ✅ (live Azure run pending) |
-| 16–19 Oct | **3. Fan experience:** persona panes side by side, "Why did that happen?", Localiser agent |
+| 16–19 Oct | **3. Fan experience:** persona panes side by side, "Why did that happen?", The Host in three languages ✅ |
 | 20–22 Oct | **4. Recap and deployment:** spoken bilingual recap (Azure AI Speech), Container Apps + Static Web Apps |
 | 23–26 Oct | Demo video, pitch, submission |
 

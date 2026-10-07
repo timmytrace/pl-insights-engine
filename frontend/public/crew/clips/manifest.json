@@ -1,0 +1,4 @@
+{
+  "_comment": "Animated crew clips (animated WebP, 512x512, transparent, 2-3 s loop). Add a file here and list it to switch it on, e.g. \"ref-rejected\": \"ref-rejected.webp\". States: stats-brief, gaffer-pitch, ref-rejected, ref-approved, gallery-decision, host-on_air.",
+  "clips": {}
+}

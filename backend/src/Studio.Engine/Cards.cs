@@ -26,7 +26,8 @@ public sealed record InsightCard(
     string Persona,
     string Language,
     string Source,          // template | agent
-    string? Replaces = null);  // the template card an agent card upgrades
+    string? Replaces = null,   // the template card an agent card upgrades
+    string? Viewer = null);    // the viewer profile this version is for; null = studio feed
 
 /// <summary>Turns a moment into cards. The agent crew implements this in the next phase.</summary>
 public interface ICardWriter

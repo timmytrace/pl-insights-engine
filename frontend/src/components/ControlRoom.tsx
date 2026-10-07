@@ -2,11 +2,14 @@ import { useEffect, useMemo, useRef } from 'react'
 import type { CrewMessage, Moment } from '../types'
 import type { CrewTally } from '../useReplay'
 import { crewMember } from '../crew'
+import { Avatar } from './Avatar'
+import { clipState } from '../clips'
 
 interface Props {
   messages: CrewMessage[]
   moments: Record<string, Moment>
   tally: CrewTally
+  onWhy?: (momentId: string) => void
 }
 
 const TAGS = new Set(['shot_speed', 'sprint_speed', 'milestone'])
@@ -18,7 +21,7 @@ const KIND_LABEL: Record<string, string> = {
 }
 
 /** The crew at work: every brief, pitch, verdict and decision, threaded by moment. */
-export function ControlRoom({ messages, moments, tally }: Props) {
+export function ControlRoom({ messages, moments, tally, onWhy }: Props) {
   const threads = useMemo(() => {
     const byMoment = new Map<string, CrewMessage[]>()
     for (const m of messages) {
@@ -55,8 +58,9 @@ export function ControlRoom({ messages, moments, tally }: Props) {
                 <span className="feed-min">{moment ? `${moment.minute}'` : ''}</span>
                 <span className="tag">{moment ? KIND_LABEL[moment.kind] ?? moment.kind : 'Moment'}</span>
                 {moment?.playerName && <span className="muted">{moment.playerName}</span>}
+                {onWhy && moment && <button type="button" className="why-link" onClick={() => onWhy(momentId)}>Why?</button>}
               </header>
-              {msgs.map((m, i) => <Line key={i} m={m} />)}
+              {msgs.map((m, i) => <Line key={i} m={m} live={m === messages[messages.length - 1]} />)}
             </article>
           )
         })}
@@ -65,18 +69,18 @@ export function ControlRoom({ messages, moments, tally }: Props) {
   )
 }
 
-function Line({ m }: { m: CrewMessage }) {
+function Line({ m, live }: { m: CrewMessage; live: boolean }) {
   const who = crewMember(m.from)
   const rejected = m.kind === 'verdict' && m.data?.approved === false
   const approved = m.kind === 'verdict' && m.data?.approved === true
   const dropped = m.kind === 'decision' && m.data?.air === false
   return (
     <div className={`line line-${m.kind}${rejected ? ' line-rejected' : ''}`} style={{ '--crew': who.colour } as React.CSSProperties}>
-      <img src={who.avatar} alt="" width={28} height={28} />
+      <Avatar id={who.id} size={28} state={live ? clipState(m.kind, m.data?.approved) : undefined} />
       <div>
         <strong>{who.name}</strong>
         {rejected && <span className="chip chip-red">Sent back</span>}
-        {approved && <span className="chip chip-green">Verified</span>}
+        {approved && <span className="chip chip-green">{m.data?.stage === 'host' ? 'All versions verified' : 'Verified'}</span>}
         {dropped && <span className="chip">Dropped</span>}
         {m.kind === 'on_air' && <span className="chip chip-live">On air</span>}
         {m.kind === 'pitch' && (m.data?.round ?? 1) > 1 && <span className="chip">Revision {m.data!.round! - 1}</span>}

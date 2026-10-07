@@ -173,6 +173,7 @@ export interface InsightCard {
   language: string
   source: 'template' | 'agent'
   replaces?: string
+  viewer?: string
 }
 
 export type CrewRoleId = 'stats' | 'gaffer' | 'ref' | 'gallery' | 'host'

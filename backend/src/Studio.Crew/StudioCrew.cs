@@ -5,12 +5,16 @@ using Studio.Engine;
 
 namespace Studio.Crew;
 
-public sealed record CrewResult(InsightCard? Card, Verdict? Verdict, int Rounds);
+public sealed record CrewResult(InsightCard? Card, Verdict? Verdict, int Rounds, IReadOnlyList<HostVersion> Versions)
+{
+    public static CrewResult NotAired(Verdict? verdict, int rounds) => new(null, verdict, rounds, []);
+}
 
 /// <summary>
 /// Runs the Virtual Studio Crew on one moment:
 /// Stats briefs → The Gaffer pitches → Ref checks (rulebook, then model) → back to The Gaffer
-/// if rejected → Gallery decides whether it still airs → The Host puts it on screen.
+/// if rejected → Gallery decides whether it still airs → The Host writes it for each viewer →
+/// Ref checks every version → on air.
 /// Every step is reported through <c>emit</c>, which is what the Control Room shows.
 /// </summary>
 public sealed class StudioCrew
@@ -20,6 +24,7 @@ public sealed class StudioCrew
     private readonly AIAgent _gaffer;
     private readonly AIAgent _ref;
     private readonly StatsAnalyst _stats = new();
+    private readonly HostAgent _host;
     private readonly CrewOptions _options;
 
     public StudioCrew(IChatClient chat, CrewOptions options)
@@ -27,6 +32,7 @@ public sealed class StudioCrew
         _options = options;
         _gaffer = chat.AsAIAgent(CrewPrompts.Gaffer, "The Gaffer", "Tactician: pitches why a moment matters");
         _ref = chat.AsAIAgent(CrewPrompts.Ref, "Ref", "Fact-checker: approves or rejects pitches");
+        _host = new HostAgent(chat);
         Gallery = new GalleryProducer(options);
     }
 
@@ -34,8 +40,11 @@ public sealed class StudioCrew
 
     public Briefing Brief(Moment m, MatchState state) => _stats.Brief(m, state);
 
-    public async Task<CrewResult> RunAsync(Briefing b, InsightCard template, Func<double> nowMatchT,
-        Action<CrewMessage> emit, CancellationToken ct)
+    public Task<CrewResult> RunAsync(Briefing b, InsightCard template, Func<double> nowMatchT,
+        Action<CrewMessage> emit, CancellationToken ct) => RunAsync(b, template, [], nowMatchT, emit, ct);
+
+    public async Task<CrewResult> RunAsync(Briefing b, InsightCard template, IReadOnlyList<ViewerProfile> viewers,
+        Func<double> nowMatchT, Action<CrewMessage> emit, CancellationToken ct)
     {
         var m = b.Moment;
         var sheet = b.Sheet;
@@ -97,22 +106,61 @@ public sealed class StudioCrew
             {
                 Say(CrewRole.Gallery, CrewMessageKind.Decision, "Ref never cleared it. The template graphic stays; nothing unverified goes on air.",
                     new() { ["air"] = false });
-                return new CrewResult(null, verdict, rounds);
+                return CrewResult.NotAired(verdict, rounds);
             }
 
             var air = Gallery.Decide(m, nowMatchT());
             Say(CrewRole.Gallery, CrewMessageKind.Decision, air.Reason, new() { ["air"] = air.Air });
-            if (!air.Air) return new CrewResult(null, verdict, rounds);
+            if (!air.Air) return CrewResult.NotAired(verdict, rounds);
 
-            var card = Host.Present(pitch, template);
-            Say(CrewRole.Host, CrewMessageKind.OnAir, $"On air: {card.Headline}", new() { ["cardId"] = card.Id });
-            return new CrewResult(card, verdict, rounds);
+            var card = HostAgent.Studio(pitch, template);
+            var versions = await PresentToViewers(pitch, b, template, viewers, Say, ct);
+            var audience = versions.Count == 0 ? "the studio feed"
+                : "the studio feed and " + string.Join(", ", versions.Select(v => $"{Label(v.Viewer)} ({v.Viewer.Language.ToUpperInvariant()})"));
+            Say(CrewRole.Host, CrewMessageKind.OnAir, $"On air for {audience}: {card.Headline}",
+                new() { ["cardId"] = card.Id, ["viewers"] = versions.Count });
+            return new CrewResult(card, verdict, rounds, versions);
         }
         finally
         {
             Gallery.Finished();
         }
     }
+
+    private async Task<IReadOnlyList<HostVersion>> PresentToViewers(StoryPitch pitch, Briefing b, InsightCard template,
+        IReadOnlyList<ViewerProfile> viewers, Action<CrewRole, CrewMessageKind, string, Dictionary<string, object>?> say,
+        CancellationToken ct)
+    {
+        var audience = viewers.Where(v => Relevance.Shows(v, b.Moment)).ToList();
+        if (audience.Count == 0) return [];
+        foreach (var v in audience.Where(v => v.PlayerId is not null))
+            StatsAnalyst.AddFocusPlayer(b, v.PlayerId!);
+
+        var versions = await Task.WhenAll(audience.Select(v => _host.PresentAsync(pitch, b, template, v, ct)));
+        var failed = versions.Where(v => !v.Verified).ToList();
+        var languages = versions.Select(v => v.Viewer.Language).Distinct().Count();
+        say(CrewRole.Ref, CrewMessageKind.Verdict, failed.Count == 0
+                ? $"Checked {Plural(versions.Length, "version")} in {Plural(languages, "language")}, {Plural(versions.Sum(v => v.NumbersChecked), "number")}. All clean."
+                : $"{failed.Count} of {versions.Length} versions failed ({string.Join(" ", failed.SelectMany(f => f.Reasons).Distinct())}). Those viewers keep the template.",
+            new()
+            {
+                ["approved"] = failed.Count == 0,
+                ["claimsChecked"] = 0,
+                ["numbersChecked"] = versions.Sum(v => v.NumbersChecked),
+                ["versions"] = versions.Length,
+                ["stage"] = "host",
+            });
+        return versions;
+    }
+
+    private static string Label(ViewerProfile v) => v.Persona switch
+    {
+        Persona.Analyst => "Analyst",
+        Persona.Casual => "Casual",
+        Persona.ClubFan => "Club fan",
+        Persona.PlayerFocus => "Player focus",
+        _ => v.Id,
+    };
 
     private async Task<ReviewDto?> Review(FactSheet sheet, StoryPitch pitch, CancellationToken ct)
     {
@@ -151,18 +199,5 @@ public sealed class StudioCrew
         MomentKind.ControlSpell => "spell of control",
         MomentKind.ElitePass => "standout pass",
         _ => kind.ToString(),
-    };
-}
-
-/// <summary>The Host: presents approved stories. Phase 3 adds personas and languages here.</summary>
-public static class Host
-{
-    public static InsightCard Present(StoryPitch pitch, InsightCard template) => template with
-    {
-        Id = template.Id.Replace("-C", "-A"),
-        Headline = pitch.Headline,
-        Body = pitch.Body,
-        Source = "agent",
-        Replaces = template.Id,
     };
 }

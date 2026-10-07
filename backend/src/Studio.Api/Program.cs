@@ -34,7 +34,8 @@ matches.MapGet("/events", (int seed, MatchLibrary lib) => lib.Get(seed).Events);
 matches.MapGet("/summary", (int seed, MatchLibrary lib) => lib.Summary(seed));
 
 // Live replay: streams the match as if it were happening, `speed` times faster than real time.
-// `crew=off` streams template cards only.
+// `crew=off` streams template cards only. `viewers=analyst.en,casual.es,club.fr.home,player.en.H10`
+// adds a personalised version of every card for each viewer (up to four).
 app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat, CrewOptions crewOptions,
     ILogger<ReplayStreamer> logger, IHostApplicationLifetime lifetime) =>
 {
@@ -44,9 +45,10 @@ app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat
     var seed = int.TryParse(ctx.Request.Query["seed"], out var s) ? s : 7;
     var speed = double.TryParse(ctx.Request.Query["speed"], out var sp) ? Math.Clamp(sp, 1, 10_000) : 20;
     var crew = ctx.Request.Query["crew"] == "off" ? null : new StudioCrew(chat, crewOptions);
+    var viewers = ViewerProfile.ParseList(ctx.Request.Query["viewers"]);
     using var socket = await ctx.WebSockets.AcceptWebSocketAsync();
     using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted, lifetime.ApplicationStopping);
-    await new ReplayStreamer(lib.Get(seed), speed, crew, logger).StreamAsync(
+    await new ReplayStreamer(lib.Get(seed), speed, crew, viewers, logger).StreamAsync(
         (envelope, ct) => socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(envelope, StudioJson.Options),
             WebSocketMessageType.Text, true, ct),
         cts.Token);

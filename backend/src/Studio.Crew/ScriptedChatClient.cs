@@ -24,6 +24,7 @@ public sealed class ScriptedChatClient(int latencyMs) : IChatClient
 
         var text = instructions.Contains(CrewPrompts.GafferTag) ? Gaffer(prompt)
             : instructions.Contains(CrewPrompts.RefTag) ? """{"approved":true,"reasons":[]}"""
+            : instructions.Contains(CrewPrompts.HostTag) ? ScriptedHost.Write(prompt)
             : "{}";
         return new ChatResponse(new ChatMessage(ChatRole.Assistant, text)) { ModelId = "scripted-mock" };
     }

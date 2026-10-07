@@ -104,6 +104,12 @@ public sealed class StatsAnalyst
         if (t.Ppda is { } ppda) sheet.Add($"{prefix}_ppda", "PPDA, full match", ppda);
     }
 
+    /// <summary>For player-focus viewers: the focused player's numbers, under the prefix "focus".</summary>
+    public static void AddFocusPlayer(Briefing b, string playerId)
+    {
+        if (b.Snapshot.Players.FirstOrDefault(p => p.Id == playerId) is { } p) AddPlayer(b.Sheet, "focus", p);
+    }
+
     private static void AddPlayer(FactSheet sheet, string prefix, PlayerSnapshot p)
     {
         sheet.Add($"{prefix}_name", "Player", p.Name);
