@@ -1,4 +1,4 @@
-import type { EventMetrics, InsightCard, MatchInfo } from '../types'
+import type { EventMetrics, MatchInfo } from '../types'
 import { playerName, teamColour } from '../format'
 
 export function EventTicker({ info, feed }: { info?: MatchInfo; feed: EventMetrics[] }) {
@@ -27,25 +27,4 @@ function describe(info: MatchInfo | undefined, e: EventMetrics['event']): string
     case 'kickoff': return `${who} kicks off`
     default: return who
   }
-}
-
-export function CardLog({ cards }: { cards: InsightCard[] }) {
-  return (
-    <section className="panel card-log">
-      <h2>Insight cards <span className="muted">{cards.length}</span></h2>
-      <ol>
-        {cards.map((c) => (
-          <li key={c.id} className={`prio-${c.priority}`}>
-            <div className="card-log-head">
-              <span className="feed-min">{c.minute}'</span>
-              <span className="tag">{c.kind.replace('_', ' ')}</span>
-              <span className="muted">{c.source}</span>
-            </div>
-            <strong>{c.headline}</strong>
-            {c.body && <p>{c.body}</p>}
-          </li>
-        ))}
-      </ol>
-    </section>
-  )
 }

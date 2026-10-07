@@ -51,6 +51,7 @@ public class ApiTests(WebApplicationFactory<Program> factory) : IClassFixture<We
         Assert.Equal("end", types[^1]);
         Assert.Contains("card", types);
         Assert.Contains("snapshot", types);
+        Assert.Contains("crew", types);
         Assert.Equal(Studio.Engine.MatchSimulator.Simulate(7).Events.Count, types.Count(t => t == "event"));
     }
 }

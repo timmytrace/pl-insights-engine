@@ -1,13 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\Studio.Engine\Studio.Engine.csproj" />
+    <ProjectReference Include="..\Studio.Crew\Studio.Crew.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>e9c953f2-fc60-425c-b5d8-d544d9624b8d</UserSecretsId>
   </PropertyGroup>
 
 </Project>

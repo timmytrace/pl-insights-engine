@@ -4,7 +4,8 @@ import { Pitch } from './components/Pitch'
 import { Overlays } from './components/Overlays'
 import { Scoreboard } from './components/Scoreboard'
 import { StatsPanel } from './components/StatsPanel'
-import { CardLog, EventTicker } from './components/Feeds'
+import { EventTicker } from './components/Feeds'
+import { ControlRoom } from './components/ControlRoom'
 import { CrewBar } from './components/CrewBar'
 
 const SPEEDS = [1, 5, 10, 20, 60]
@@ -13,6 +14,7 @@ export default function App() {
   const { state, start, stop } = useReplay()
   const [seed, setSeed] = useState(7)
   const [speed, setSpeed] = useState(20)
+  const [crewOn, setCrewOn] = useState(true)
   const running = state.status === 'live' || state.status === 'connecting'
 
   return (
@@ -21,7 +23,7 @@ export default function App() {
         <div className="brand">
           <span className="brand-mark" aria-hidden>●</span> Virtual Studio Crew
         </div>
-        <form className="controls" onSubmit={(e) => { e.preventDefault(); start(seed, speed) }}>
+        <form className="controls" onSubmit={(e) => { e.preventDefault(); start(seed, speed, crewOn) }}>
           <label>Match seed
             <input type="number" min={1} value={seed} onChange={(e) => setSeed(Number(e.target.value) || 1)} />
           </label>
@@ -30,6 +32,9 @@ export default function App() {
               {SPEEDS.map((s) => <option key={s} value={s}>{s}×</option>)}
             </select>
           </label>
+          <label className="toggle">
+            <input type="checkbox" checked={crewOn} onChange={(e) => setCrewOn(e.target.checked)} /> AI crew
+          </label>
           <button type="submit" className="primary">{running ? 'Restart' : 'Kick off'}</button>
           {running && <button type="button" onClick={stop}>Stop</button>}
         </form>
@@ -37,7 +42,7 @@ export default function App() {
       </header>
 
       <Scoreboard info={state.info} snapshot={state.snapshot} status={state.status} />
-      <CrewBar />
+      <CrewBar active={state.speaker?.id} />
 
       <main className="layout">
         <div className="stage">
@@ -45,8 +50,8 @@ export default function App() {
             <Overlays info={state.info} overlays={state.overlays} />
           </Pitch>
           <div className="below-stage">
+            <ControlRoom messages={state.crew} moments={state.moments} tally={state.tally} />
             <EventTicker info={state.info} feed={state.feed} />
-            <CardLog cards={state.cards} />
           </div>
         </div>
         <StatsPanel info={state.info} snapshot={state.snapshot} />

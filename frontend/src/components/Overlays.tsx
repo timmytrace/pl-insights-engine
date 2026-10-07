@@ -23,6 +23,7 @@ function OverlayCard({ card, colour }: { card: InsightCard; colour: string }) {
   return (
     <div className={`overlay overlay-${card.slot.replace('_', '-')}`} style={{ '--team': colour } as React.CSSProperties}>
       <div className="overlay-headline">{card.headline}</div>
+      {card.source === 'agent' && <div className="overlay-verified">✓ Verified by Ref</div>}
       {card.body && <div className="overlay-body">{card.body}</div>}
       {card.stats.length > 0 && (
         <div className="overlay-stats">

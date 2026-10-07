@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Envelope, EventMetrics, InsightCard, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
+import type { CrewMessage, CrewRoleId, Envelope, EventMetrics, InsightCard, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
 
 export type Status = 'idle' | 'connecting' | 'live' | 'full_time' | 'error'
 
 export interface ActiveCard { card: InsightCard; until: number }
+
+export interface CrewTally {
+  claimsChecked: number
+  numbersChecked: number
+  sentBack: number
+  approved: number
+  upgraded: number
+  dropped: number
+}
 
 export interface ReplayState {
   status: Status
@@ -11,22 +20,27 @@ export interface ReplayState {
   snapshot?: MatchSnapshot
   recent: EventMetrics[]        // newest last, for the pitch trail
   feed: EventMetrics[]          // newest first, notable events for the ticker
-  moments: Moment[]             // newest first
-  cards: InsightCard[]          // newest first, the full log
+  moments: Record<string, Moment>
+  crew: CrewMessage[]           // newest last, the Control Room transcript
+  tally: CrewTally
+  speaker?: { id: CrewRoleId; until: number }
   overlays: Partial<Record<Slot, ActiveCard>>
 }
 
 const TRAIL = 8
 const FEED = 40
+const CREW_LOG = 240
 const FEED_TYPES = new Set(['shot', 'tackle', 'interception', 'foul', 'substitution', 'kickoff', 'period_end'])
 const MIN_ON_SCREEN_MS = 3500
+const SPEAKER_MS = 1800
 
-const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: [], cards: [], overlays: {} }
+const emptyTally: CrewTally = { claimsChecked: 0, numbersChecked: 0, sentBack: 0, approved: 0, upgraded: 0, dropped: 0 }
+const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {} }
 
 /**
  * Connects to the replay socket and folds the stream into render state. Overlay slots hold
- * one card each: a higher-priority card (lower number) replaces the current one, otherwise
- * the new card waits until the slot frees up or is dropped if it goes stale.
+ * one card each: a higher-priority card (lower number) replaces the current one. A verified
+ * agent card replaces its template in place if the template is still on screen.
  */
 export function useReplay() {
   const [state, setState] = useState<ReplayState>(initial)
@@ -38,12 +52,12 @@ export function useReplay() {
     socket.current = null
   }, [])
 
-  const start = useCallback((seed: number, speed: number) => {
+  const start = useCallback((seed: number, speed: number, crew: boolean) => {
     stop()
     speedRef.current = speed
     setState({ ...initial, status: 'connecting' })
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
-    const ws = new WebSocket(`${proto}://${location.host}/ws/replay?seed=${seed}&speed=${speed}`)
+    const ws = new WebSocket(`${proto}://${location.host}/ws/replay?seed=${seed}&speed=${speed}${crew ? '' : '&crew=off'}`)
     socket.current = ws
 
     ws.onmessage = (msg) => {
@@ -54,7 +68,7 @@ export function useReplay() {
     ws.onclose = () => setState((s) => (s.status === 'live' || s.status === 'connecting' ? { ...s, status: s.snapshot ? 'full_time' : 'error' } : s))
   }, [stop])
 
-  // Expire overlays on a timer so they clear even when the stream is quiet.
+  // Expire overlays and the speaking highlight on a timer so they clear when the stream is quiet.
   useEffect(() => {
     const id = setInterval(() => {
       const now = Date.now()
@@ -64,7 +78,9 @@ export function useReplay() {
         for (const slot of Object.keys(overlays) as Slot[]) {
           if (overlays[slot]!.until <= now) { delete overlays[slot]; changed = true }
         }
-        return changed ? { ...s, overlays } : s
+        const speaker = s.speaker && s.speaker.until <= now ? undefined : s.speaker
+        if (speaker !== s.speaker) changed = true
+        return changed ? { ...s, overlays, speaker } : s
       })
     }, 250)
     return () => clearInterval(id)
@@ -87,21 +103,43 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
     case 'snapshot':
       return { ...s, snapshot: env.data }
     case 'moment':
-      return { ...s, moments: [env.data, ...s.moments] }
-    case 'card': {
-      const card = env.data
-      const now = Date.now()
-      const current = s.overlays[card.slot]
-      const free = !current || current.until <= now || card.priority <= current.card.priority
-      // Match-time durations are compressed by the replay speed, with a floor so cards stay readable.
-      const until = now + Math.max((card.durationS * 1000) / speed, MIN_ON_SCREEN_MS)
+      return { ...s, moments: { ...s.moments, [env.data.id]: env.data } }
+    case 'card':
+      return showCard(s, env.data, speed)
+    case 'crew':
       return {
         ...s,
-        cards: [card, ...s.cards],
-        overlays: free ? { ...s.overlays, [card.slot]: { card, until } } : s.overlays,
+        crew: [...s.crew, env.data].slice(-CREW_LOG),
+        tally: tally(s.tally, env.data),
+        speaker: { id: env.data.from, until: Date.now() + SPEAKER_MS },
       }
-    }
     case 'end':
       return { ...s, status: 'full_time', snapshot: env.data }
   }
+}
+
+function showCard(s: ReplayState, card: InsightCard, speed: number): ReplayState {
+  const now = Date.now()
+  const current = s.overlays[card.slot]
+  // Match-time durations are compressed by the replay speed, with a floor so cards stay readable.
+  const until = now + Math.max((card.durationS * 1000) / speed, MIN_ON_SCREEN_MS)
+  const upgradesOnScreen = card.replaces != null && current?.card.id === card.replaces
+  const free = !current || current.until <= now || card.priority <= current.card.priority
+  if (card.replaces && !upgradesOnScreen && !free) return s
+  return upgradesOnScreen || free ? { ...s, overlays: { ...s.overlays, [card.slot]: { card, until } } } : s
+}
+
+function tally(t: CrewTally, m: CrewMessage): CrewTally {
+  if (m.kind === 'verdict') {
+    return {
+      ...t,
+      claimsChecked: t.claimsChecked + (m.data?.claimsChecked ?? 0),
+      numbersChecked: t.numbersChecked + (m.data?.numbersChecked ?? 0),
+      sentBack: t.sentBack + (m.data?.approved ? 0 : 1),
+      approved: t.approved + (m.data?.approved ? 1 : 0),
+    }
+  }
+  if (m.kind === 'on_air') return { ...t, upgraded: t.upgraded + 1 }
+  if (m.kind === 'decision' && m.data?.air === false) return { ...t, dropped: t.dropped + 1 }
+  return t
 }

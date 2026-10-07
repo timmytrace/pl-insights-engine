@@ -137,3 +137,29 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
   .crew-member { flex-direction: column; text-align: center; padding: 8px 4px; }
   .crew-member img { width: 44px; height: 44px; }
 }
+
+/* Control Room: the crew's transcript, threaded by moment. */
+.below-stage { grid-template-columns: 3fr 2fr; }
+.control-room { display: grid; gap: 10px; align-content: start; }
+.tally { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tally-tile { background: var(--panel-2); border-radius: 8px; padding: 8px; display: grid; text-align: center; }
+.tally-tile strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.tally-tile span { font-size: 0.68rem; color: var(--muted); }
+.tally-red strong { color: #ff6b6b; }
+.tally-green strong { color: var(--accent); }
+.threads { max-height: 420px; overflow-y: auto; display: grid; gap: 10px; scroll-behavior: smooth; }
+.thread { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 6px; }
+.thread header { display: flex; gap: 8px; align-items: center; font-size: 0.75rem; }
+.line { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; font-size: 0.83rem; }
+.line img { width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 0 0 2px var(--crew); background: var(--panel); }
+.line strong { color: var(--crew); margin-right: 6px; font-size: 0.78rem; }
+.line p { margin: 1px 0 0; color: #d6dde6; line-height: 1.35; }
+.line-rejected p { color: #ffb3b3; }
+.chip { display: inline-block; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 4px; padding: 1px 6px; margin-right: 4px; background: var(--line); color: var(--text); vertical-align: 1px; }
+.chip-red { background: #d7263d; }
+.chip-green { background: #1f7a4d; }
+.chip-live { background: #ff3b47; }
+.overlay-verified { font-size: 0.68rem; color: #d4e335; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.toggle { display: flex !important; grid-auto-flow: column; align-items: center; gap: 6px; font-size: 0.8rem !important; color: var(--text) !important; }
+.toggle input { width: auto; }
+@media (max-width: 1000px) { .tally { grid-template-columns: repeat(2, 1fr); } }

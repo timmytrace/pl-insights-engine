@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Studio.Engine\Studio.Engine.csproj" />
     <ProjectReference Include="..\..\src\Studio.Api\Studio.Api.csproj" />
+    <ProjectReference Include="..\..\src\Studio.Crew\Studio.Crew.csproj" />
   </ItemGroup>
 
 </Project>

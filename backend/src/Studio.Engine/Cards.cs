@@ -25,7 +25,8 @@ public sealed record InsightCard(
     IReadOnlyList<string> Evidence,
     string Persona,
     string Language,
-    string Source);         // template | agent
+    string Source,          // template | agent
+    string? Replaces = null);  // the template card an agent card upgrades
 
 /// <summary>Turns a moment into cards. The agent crew implements this in the next phase.</summary>
 public interface ICardWriter

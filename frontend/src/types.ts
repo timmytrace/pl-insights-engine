@@ -172,6 +172,29 @@ export interface InsightCard {
   persona: string
   language: string
   source: 'template' | 'agent'
+  replaces?: string
+}
+
+export type CrewRoleId = 'stats' | 'gaffer' | 'ref' | 'gallery' | 'host'
+
+export type CrewMessageKind = 'brief' | 'tool_call' | 'pitch' | 'verdict' | 'decision' | 'on_air'
+
+export interface CrewMessage {
+  momentId: string
+  from: CrewRoleId
+  kind: CrewMessageKind
+  text: string
+  matchT: number
+  data?: {
+    approved?: boolean
+    claimsChecked?: number
+    numbersChecked?: number
+    reasons?: string[]
+    air?: boolean
+    route?: 'crew' | 'templateonly'
+    round?: number
+    [key: string]: unknown
+  }
 }
 
 export type Envelope =
@@ -180,4 +203,5 @@ export type Envelope =
   | { type: 'snapshot'; t: number; data: MatchSnapshot }
   | { type: 'moment'; t: number; data: Moment }
   | { type: 'card'; t: number; data: InsightCard }
+  | { type: 'crew'; t: number; data: CrewMessage }
   | { type: 'end'; t: number; data: MatchSnapshot }

@@ -1,9 +1,11 @@
 using System.Text.Json;
+using Studio.Crew;
 using Studio.Engine;
 
 // studio generate --seed 7 [--out data/sample/seed-7]   writes match.json (metadata) + events.jsonl
 // studio summary  --seed 7                          prints full-time stats for a seed
 // studio moments  --seed 7                          lists the moments and cards the engine finds
+// studio crew     --seed 7                          prints the Control Room transcript (mock model)
 
 var command = args.FirstOrDefault() ?? "summary";
 var seed = int.Parse(Arg("--seed") ?? "7");
@@ -37,8 +39,27 @@ switch (command)
                 Console.WriteLine($"{card.Minute,3}' {card.Kind,-14} P{card.Priority} {card.Headline} | {card.Body}");
         break;
 
+    case "crew":
+        var crewPipeline = new MatchPipeline(match.Info);
+        var crew = new StudioCrew(new ScriptedChatClient(0), new CrewOptions { MaxConcurrentMoments = 100 });
+        foreach (var e in match.Events)
+        {
+            var step = crewPipeline.Process(e);
+            foreach (var m in step.Moments)
+            {
+                var route = crew.Gallery.Route(m);
+                if (route.Route != CrewRoute.Crew) continue;
+                Console.WriteLine();
+                Console.WriteLine($"-- {m.Minute}' {m.Kind} --");
+                var template = step.Cards.First(c => c.MomentId == m.Id);
+                await crew.RunAsync(crew.Brief(m, crewPipeline.State), template, () => m.T,
+                    msg => Console.WriteLine($"  {msg.From,-8} {msg.Text}"), CancellationToken.None);
+            }
+        }
+        break;
+
     default:
-        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary or moments.");
+        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary, moments or crew.");
         return 1;
 }
 return 0;
