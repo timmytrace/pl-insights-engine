@@ -1,0 +1,125 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #121821;
+  --panel-2: #18202b;
+  --line: #243041;
+  --text: #e8edf3;
+  --muted: #8a98ab;
+  --accent: #39d98a;
+  --gold: #ffd166;
+  --grass: #12462d;
+  --grass-stripe: #155233;
+  --radius: 10px;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--bg); }
+h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 0.75rem; display: flex; justify-content: space-between; }
+.muted { color: var(--muted); font-weight: 400; }
+button, input, select { font: inherit; color: inherit; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.6rem; }
+button { cursor: pointer; }
+button.primary { background: var(--accent); color: #04130b; border-color: transparent; font-weight: 600; }
+
+.app { max-width: 1440px; margin: 0 auto; padding: 0 16px 24px; }
+
+.topbar { display: flex; align-items: center; gap: 1rem; padding: 14px 0; flex-wrap: wrap; }
+.brand { font-weight: 700; letter-spacing: 0.02em; margin-right: auto; }
+.brand-mark { color: #ff4d4d; animation: blink 1.6s infinite; }
+.controls { display: flex; gap: 0.6rem; align-items: end; flex-wrap: wrap; }
+.controls label { display: grid; gap: 2px; font-size: 0.72rem; color: var(--muted); }
+.controls input { width: 6rem; }
+.status { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.2rem 0.55rem; border-radius: 99px; background: var(--panel-2); color: var(--muted); }
+.status-live { background: #3a1010; color: #ff8a8a; }
+.status-full_time { background: #10301f; color: var(--accent); }
+.status-error { background: #3a2a10; color: var(--gold); }
+
+.scoreboard { display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 14px; }
+.scoreboard-empty { display: block; color: var(--muted); text-align: center; }
+.sb-team { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1.3rem; }
+.sb-away { justify-content: flex-start; }
+.sb-team:not(.sb-away) { justify-content: flex-end; }
+.sb-swatch { width: 10px; height: 28px; border-radius: 3px; background: var(--team); }
+.sb-score { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sb-score span { color: var(--muted); margin: 0 0.4rem; }
+.sb-clock { font-variant-numeric: tabular-nums; font-weight: 700; background: var(--panel-2); padding: 0.3rem 0.7rem; border-radius: 6px; min-width: 4.5rem; text-align: center; }
+.sb-meta { grid-column: 1 / -1; text-align: center; font-size: 0.78rem; color: var(--muted); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; }
+.stage { display: grid; gap: 14px; min-width: 0; }
+.below-stage { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; min-width: 0; }
+
+.pitch-frame { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+.pitch { display: block; width: 100%; height: auto; }
+.pitch-grass { fill: var(--grass); }
+.pitch-stripe { fill: var(--grass-stripe); }
+.pitch-lines { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.25; }
+.pitch-lines .spot { fill: rgba(255, 255, 255, 0.55); }
+.ball { fill: #fff; stroke: #000; stroke-width: 0.2; transition: cx 0.25s linear, cy 0.25s linear; }
+.pulse { animation: pulse 0.9s ease-out; }
+
+/* Broadcast overlays: absolutely positioned over the pitch, like graphics over a feed. */
+.overlays { position: absolute; inset: 0; pointer-events: none; }
+.overlay { position: absolute; background: rgba(8, 12, 18, 0.88); border-left: 4px solid var(--team); border-radius: 6px; padding: 10px 14px; backdrop-filter: blur(4px); animation: slide-in 0.35s ease-out; max-width: 60%; }
+.overlay-headline { font-weight: 700; }
+.overlay-body { font-size: 0.85rem; color: #c9d3df; margin-top: 2px; }
+.overlay-stats { display: flex; gap: 1rem; margin-top: 6px; }
+.overlay-stat { display: grid; }
+.overlay-stat-value { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.overlay-stat-value small { font-size: 0.7rem; color: var(--muted); margin-left: 2px; }
+.overlay-stat-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.overlay-lower-third { left: 3%; bottom: 6%; max-width: 55%; }
+.overlay-banner { left: 50%; top: 8%; transform: translateX(-50%); text-align: center; border-left: none; border-top: 4px solid var(--team); font-size: 1.25rem; animation: drop-in 0.4s ease-out; }
+.overlay-banner .overlay-stats { justify-content: center; }
+.overlay-corner { right: 3%; top: 6%; max-width: 38%; }
+.overlay-player-tag { right: 3%; bottom: 6%; max-width: 34%; border-left: none; border-bottom: 3px solid var(--gold); padding: 6px 12px; text-align: center; }
+
+.stats-panel { display: grid; gap: 14px; align-content: start; }
+.indicator-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; }
+.momentum-bar { position: relative; display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--panel-2); }
+.momentum-home, .momentum-away { transition: width 0.6s ease; }
+.momentum-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--text); opacity: 0.7; }
+.cvc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gauge { display: grid; justify-items: center; gap: 4px; font-size: 0.75rem; color: var(--muted); }
+.gauge strong { color: var(--text); font-size: 1rem; }
+.gauge-track { width: 18px; height: 70px; background: var(--panel-2); border-radius: 99px; display: flex; align-items: flex-end; overflow: hidden; }
+.gauge-fill { width: 100%; transition: height 0.6s ease; }
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.mini-stats div { background: var(--panel-2); border-radius: 8px; padding: 8px 4px; display: grid; }
+.mini-stats span { font-size: 0.68rem; color: var(--muted); }
+.stat-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.stat-table td, .stat-table th { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: center; }
+.stat-table th[scope='row'] { font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+.stat-table td.lead { font-weight: 700; }
+
+.feed-list, .card-log ol { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow-y: auto; display: grid; gap: 4px; }
+.feed-list li { display: grid; grid-template-columns: 2.4rem 6.5rem 1fr; gap: 6px; font-size: 0.82rem; padding: 4px 6px; border-left: 3px solid var(--team); background: var(--panel-2); border-radius: 4px; }
+.feed-min { color: var(--muted); font-variant-numeric: tabular-nums; }
+.feed-type { text-transform: capitalize; color: var(--muted); }
+.card-log li { background: var(--panel-2); border-radius: 6px; padding: 8px 10px; font-size: 0.85rem; border-left: 3px solid var(--line); }
+.card-log li.prio-1 { border-left-color: var(--gold); }
+.card-log li.prio-2 { border-left-color: var(--accent); }
+.card-log p { margin: 2px 0 0; color: #c9d3df; }
+.card-log-head { display: flex; gap: 8px; align-items: center; font-size: 0.72rem; margin-bottom: 2px; }
+.tag { text-transform: uppercase; letter-spacing: 0.05em; background: var(--line); border-radius: 4px; padding: 1px 6px; }
+
+.footer { margin-top: 18px; text-align: center; font-size: 0.75rem; color: var(--muted); }
+
+@keyframes slide-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@keyframes drop-in { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes pulse { from { r: 0.5; opacity: 1; } to { r: 3; opacity: 0; } }
+@keyframes blink { 50% { opacity: 0.3; } }
+
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: 1fr; }
+  .below-stage { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .overlay { max-width: 90%; font-size: 0.8rem; }
+  .sb-team { font-size: 1rem; }
+  .sb-score { font-size: 1.5rem; }
+}
