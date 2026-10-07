@@ -1,5 +1,7 @@
 # Virtual Studio Crew
 
+![The crew: Stats, The Gaffer, The Host, Ref and Gallery in the Control Room](docs/crew-lineup.jpg)
+
 **An AI production crew for football broadcasts.** Synthetic match events go in. Explainable,
 timed, personalised insight graphics come out, ready to sit on screen alongside the match.
 
@@ -9,6 +11,21 @@ All clubs, players and match data are synthetic. No real match data is used.
 > **Status: phase 1 of 4 (foundations).** The simulator, metrics engine, moment detection,
 > template cards, live replay API and overlay UI work end to end. The Azure AI agent crew
 > lands in phase 2. See the [roadmap](#roadmap).
+
+## The crew
+
+Five AI agents, each played by an original character with one job.
+
+| Character | Role | Job |
+|---|---|---|
+| **Stats** | Data Analyst | Pulls the numbers from the engine. Never gives an opinion |
+| **The Gaffer** | Tactician | Pitches the story behind the numbers |
+| **Ref** | Fact-Checker | Rejects any claim the evidence doesn't support |
+| **Gallery** | Producer | Decides what goes on air, when, and what gets dropped |
+| **The Host** | Presenter | Tells each fan the story their way, in their language |
+
+Characters designed and modelled by Timilehin Owolabi. Avatars, turnaround sheets and prop
+textures are in [`frontend/public/crew`](frontend/public/crew).
 
 ## How it works
 

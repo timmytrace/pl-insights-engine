@@ -5,6 +5,7 @@ import { Overlays } from './components/Overlays'
 import { Scoreboard } from './components/Scoreboard'
 import { StatsPanel } from './components/StatsPanel'
 import { CardLog, EventTicker } from './components/Feeds'
+import { CrewBar } from './components/CrewBar'
 
 const SPEEDS = [1, 5, 10, 20, 60]
 
@@ -36,6 +37,7 @@ export default function App() {
       </header>
 
       <Scoreboard info={state.info} snapshot={state.snapshot} status={state.status} />
+      <CrewBar />
 
       <main className="layout">
         <div className="stage">

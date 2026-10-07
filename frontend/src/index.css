@@ -123,3 +123,17 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
   .sb-team { font-size: 1rem; }
   .sb-score { font-size: 1.5rem; }
 }
+
+/* Crew strip: avatars ringed in each character's role colour. */
+.crew-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.crew-member { margin: 0; display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; transition: border-color 0.3s, box-shadow 0.3s; min-width: 0; }
+.crew-member img { width: 56px; height: 56px; border-radius: 50%; background: var(--panel-2); box-shadow: 0 0 0 2px var(--crew); flex: none; }
+.crew-member figcaption { display: grid; min-width: 0; }
+.crew-member strong { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crew-member span { font-size: 0.72rem; color: var(--crew); }
+.crew-active { border-color: var(--crew); box-shadow: 0 0 18px -6px var(--crew); }
+@media (max-width: 900px) {
+  .crew-bar { grid-template-columns: repeat(5, 1fr); }
+  .crew-member { flex-direction: column; text-align: center; padding: 8px 4px; }
+  .crew-member img { width: 44px; height: 44px; }
+}
