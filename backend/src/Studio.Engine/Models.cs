@@ -83,8 +83,12 @@ public sealed record MatchEvent
     public string? BodyPart { get; init; }
     public double? Xg { get; init; }
     public string? SubOffId { get; init; }
+    /// <summary>Where all 22 players are at this event, like a tracking feed. On-ball events only.</summary>
+    public IReadOnlyList<PlayerPosition>? Players { get; init; }
 
     public int Minute => (int)(Clock / 60) + 1;
 }
+
+public sealed record PlayerPosition(string Id, double X, double Y);
 
 public sealed record Match(MatchInfo Info, IReadOnlyList<MatchEvent> Events);

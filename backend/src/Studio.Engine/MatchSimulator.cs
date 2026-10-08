@@ -220,9 +220,39 @@ public sealed class MatchSimulator
             BodyPart = bodyPart,
             Xg = xg is { } x ? Math.Round(x, 3) : null,
             SubOffId = subOffId,
+            Players = TrackedTypes.Contains(type) ? Track(player?.Id, l) : null,
         };
         _events.Add(ev);
         return ev;
+    }
+
+    private static readonly HashSet<EventType> TrackedTypes =
+    [
+        EventType.Kickoff, EventType.Pass, EventType.Carry, EventType.Shot,
+        EventType.Tackle, EventType.Interception, EventType.PossessionChange, EventType.Foul,
+    ];
+
+    /// <summary>
+    /// A tracking frame: every player's position in the fixed frame, from the same shape model the
+    /// simulator uses to pick passes and tacklers. The player making the event stands where it happens.
+    /// </summary>
+    private List<PlayerPosition> Track(string? actorId, (double X, double Y)? at)
+    {
+        var frame = new List<PlayerPosition>(22);
+        foreach (var side in new[] { Side.Home, Side.Away })
+        {
+            var slots = _teams[side].Slots;
+            var positions = Positions(side);
+            for (var i = 0; i < slots.Count; i++)
+            {
+                var id = slots[i].Player.Id;
+                var (x, y) = Pitch.FixedFrame(_side, positions[i].X, positions[i].Y);
+                if (side == _side && i == _carrier) (x, y) = Pitch.FixedFrame(_side, _bx, _by);
+                if (id == actorId && at is { } p) (x, y) = p;
+                frame.Add(new PlayerPosition(id, R1(x), R1(y)));
+            }
+        }
+        return frame;
     }
 
     /// <summary>Approximate positions of a side's players, in the possessing side's frame.</summary>

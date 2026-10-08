@@ -51,7 +51,11 @@ export interface MatchEvent {
   bodyPart?: string
   xg?: number
   subOffId?: string
+  /** Tracking frame: all 22 players, on-ball events only. */
+  players?: PlayerPosition[]
 }
+
+export interface PlayerPosition { id: string; x: number; y: number }
 
 export interface EventMetrics {
   event: MatchEvent

@@ -19,7 +19,7 @@ type View = 'studio' | 'fans'
 export default function App() {
   const { state, start, stop } = useReplay()
   const [seed, setSeed] = useState(7)
-  const [speed, setSpeed] = useState(20)
+  const [speed, setSpeed] = useState(10)   // the live crew needs ~6-10 s per story; faster replays outrun Gallery's freshness budget
   const [crewOn, setCrewOn] = useState(true)
   const [view, setView] = useState<View>('fans')
   const [viewers, setViewers] = useState<Viewer[]>(DEFAULT_VIEWERS)

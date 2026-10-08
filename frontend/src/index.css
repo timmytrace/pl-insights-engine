@@ -59,7 +59,12 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .pitch-stripe { fill: var(--grass-stripe); }
 .pitch-lines { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.25; }
 .pitch-lines .spot { fill: rgba(255, 255, 255, 0.55); }
-.ball { fill: #fff; stroke: #000; stroke-width: 0.2; transition: cx 0.25s linear, cy 0.25s linear; }
+.ball { fill: #fff; stroke: #000; stroke-width: 0.2; transition: cx 0.4s linear, cy 0.4s linear; }
+/* Players glide between tracking frames. */
+.player { transition: transform 0.5s linear; }
+.player-disc { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.25; }
+.player.on-ball .player-disc { stroke: #fff; stroke-width: 0.45; }
+.player-number { font-size: 1.5px; font-weight: 700; text-anchor: middle; fill: #fff; paint-order: stroke; stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.25px; pointer-events: none; }
 .pulse { animation: pulse 0.9s ease-out; }
 
 /* Broadcast overlays: absolutely positioned over the pitch, like graphics over a feed. */
@@ -194,7 +199,8 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .player-strip div { background: var(--panel-2); border-radius: 6px; padding: 6px 2px; display: grid; }
 .player-strip strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 .player-strip span { font-size: 0.64rem; color: var(--muted); }
-.focus-ring { fill: none; stroke: #fff; stroke-width: 0.35; stroke-dasharray: 0.6 0.4; }
+.focus-ring { fill: none; stroke: #fff; stroke-width: 0.35; stroke-dasharray: 0.6 0.4; animation: spin 6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .avatar-animated { object-fit: cover; }
 
 /* Why did that happen? */

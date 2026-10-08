@@ -1,4 +1,5 @@
-import type { EventMetrics, MatchInfo } from '../types'
+import { useMemo } from 'react'
+import type { EventMetrics, MatchInfo, PlayerPosition } from '../types'
 import { teamColour } from '../format'
 
 interface Props {
@@ -13,6 +14,14 @@ interface Props {
 export function Pitch({ info, recent, highlightPlayer, children }: Props) {
   const last = recent.at(-1)?.event
   const ball = last ? { x: last.endX ?? last.x, y: last.endY ?? last.y } : undefined
+  // The latest tracking frame in the trail: where all 22 players are right now.
+  const frame = [...recent].reverse().find((m) => m.event.players)?.event
+  const shirts = useMemo(() => {
+    const map = new Map<string, { number: number; name: string; side: 'home' | 'away'; gk: boolean }>()
+    if (info) for (const side of ['home', 'away'] as const)
+      for (const p of [...info[side].starters, ...info[side].bench]) map.set(p.id, { number: p.number, name: p.name, side, gk: p.position === 'GK' })
+    return map
+  }, [info])
 
   return (
     <div className="pitch-frame">
@@ -39,7 +48,7 @@ export function Pitch({ info, recent, highlightPlayer, children }: Props) {
         {recent.map((m, i) => {
           const e = m.event
           if (e.x == null || e.y == null || e.endX == null || e.endY == null) return null
-          const opacity = 0.25 + (0.75 * (i + 1)) / recent.length
+          const opacity = 0.1 + (0.5 * (i + 1)) / recent.length   // a faint trail: the players carry the picture
           const colour = teamColour(info, e.team)
           if (e.type === 'pass') {
             return (
@@ -66,12 +75,13 @@ export function Pitch({ info, recent, highlightPlayer, children }: Props) {
           ) : null,
         )}
 
-        {highlightPlayer && recent.filter((m) => m.event.playerId === highlightPlayer && m.event.x != null).map((m) => (
-          <circle key={`f-${m.event.id}`} cx={m.event.x} cy={m.event.y} r={1.8} className="focus-ring" />
+        {frame?.players?.map((p) => (
+          <PlayerDot key={p.id} p={p} shirt={shirts.get(p.id)} colour={teamColour(info, p.id.startsWith('H') ? 'home' : 'away')}
+            onBall={p.id === frame.playerId} focus={p.id === highlightPlayer} />
         ))}
 
         {ball?.x != null && ball.y != null && (
-          <circle cx={ball.x} cy={ball.y} r={0.9} className="ball" />
+          <circle cx={ball.x} cy={ball.y} r={0.75} className="ball" />
         )}
 
         <defs>
@@ -82,5 +92,25 @@ export function Pitch({ info, recent, highlightPlayer, children }: Props) {
       </svg>
       {children}
     </div>
+  )
+}
+
+interface DotProps {
+  p: PlayerPosition
+  shirt?: { number: number; name: string; gk: boolean }
+  colour: string
+  onBall: boolean
+  focus: boolean
+}
+
+/** One player: a team-coloured disc with their shirt number, gliding between tracking frames. */
+function PlayerDot({ p, shirt, colour, onBall, focus }: DotProps) {
+  return (
+    <g className={`player${onBall ? ' on-ball' : ''}${focus ? ' focus' : ''}`} style={{ transform: `translate(${p.x}px, ${p.y}px)` }}>
+      <title>{shirt?.name ?? p.id}</title>
+      {focus && <circle r={2.6} className="focus-ring" />}
+      <circle r={1.55} fill={shirt?.gk ? '#f1c40f' : colour} className="player-disc" />
+      <text y={0.55} className="player-number">{shirt?.number ?? ''}</text>
+    </g>
   )
 }
