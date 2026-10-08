@@ -165,6 +165,17 @@ public class CrewTests
     }
 
     [Fact]
+    public void A_condensed_match_sends_only_headline_moments_to_the_crew()
+    {
+        var gallery = new GalleryProducer(new CrewOptions { MaxConcurrentMoments = 10 }, highlightsOnly: true);
+        Moment M(MomentKind kind) => new("M", kind, 100, 100, 2, Side.Home, null, null, 0.5, ["e"], new Dictionary<string, object>());
+        Assert.Equal(CrewRoute.Crew, gallery.Route(M(MomentKind.Goal)).Route);
+        Assert.Equal(CrewRoute.Crew, gallery.Route(M(MomentKind.PressSurge)).Route);
+        Assert.Equal(CrewRoute.TemplateOnly, gallery.Route(M(MomentKind.ElitePass)).Route);
+        Assert.Equal(CrewRoute.TemplateOnly, gallery.Route(M(MomentKind.ControlSpell)).Route);
+    }
+
+    [Fact]
     public void Gallery_drops_stories_that_arrive_too_late()
     {
         var gallery = new GalleryProducer(new CrewOptions { FreshnessSeconds = 120 });

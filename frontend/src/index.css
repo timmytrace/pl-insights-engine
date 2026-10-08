@@ -242,3 +242,10 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .commentary-now.excite-3 { color: #fff; font-weight: 800; text-shadow: 0 0 12px #ff3b47; }
 .fan-pane .commentary-now { font-size: 0.82rem; }
 .notice { background: #3a2a10; color: #ffd166; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem; }
+
+/* Match phase and progress */
+.sb-clock { display: grid; justify-items: center; gap: 1px; }
+.sb-clock small { font-size: 0.6rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.sb-progress { grid-column: 1 / -1; position: relative; height: 4px; background: var(--panel-2); border-radius: 99px; overflow: hidden; }
+.sb-progress > div { height: 100%; background: linear-gradient(90deg, var(--accent), #ffd166); transition: width 0.6s linear; }
+.sb-half-mark { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--muted); opacity: 0.6; }

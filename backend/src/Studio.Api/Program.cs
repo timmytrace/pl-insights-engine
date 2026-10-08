@@ -69,7 +69,8 @@ matches.MapGet("/commentary", (int seed, string? lang, CommentaryService comment
 matches.MapGet("/commentary/{seq:int}/audio", async (int seed, int seq, string? lang, CommentaryService commentary) =>
     await commentary.AudioAsync(seed, Language(lang), seq) is { } audio ? Results.File(audio, "audio/mpeg") : Results.NotFound());
 
-// Live replay: streams the match as if it were happening, `speed` times faster than real time.
+// Live replay: streams the match as if it were happening, `speed` times faster than real time,
+// or `mode=condensed` for a self-paced condensed match (about 4-5 minutes).
 // `crew=off` streams template cards only. `viewers=analyst.en,casual.es,club.fr.home,player.en.H10`
 // adds a personalised version of every card for each viewer (up to four).
 app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat, CrewOptions crewOptions,
@@ -79,10 +80,11 @@ app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat
         return Results.BadRequest("Expected a WebSocket request.");
 
     var seed = int.TryParse(ctx.Request.Query["seed"], out var s) ? s : 7;
-    var speed = double.TryParse(ctx.Request.Query["speed"], out var sp) ? Math.Clamp(sp, 1, 10_000) : 20;
+    var speed = double.TryParse(ctx.Request.Query["speed"], out var sp) ? Math.Clamp(sp, 1, 10_000) : 10;
+    var condensed = ctx.Request.Query["mode"] == "condensed";
     var wantsCrew = ctx.Request.Query["crew"] != "off";
     using var crewSlot = wantsCrew ? usage.TryStartCrewReplay() : null;
-    var crew = crewSlot is null ? null : new StudioCrew(chat, crewOptions);
+    var crew = crewSlot is null ? null : new StudioCrew(chat, crewOptions, highlightsOnly: condensed);
     var viewers = ViewerProfile.ParseList(ctx.Request.Query["viewers"]);
     var languages = viewers.Select(v => v.Language).Append("en").Distinct();
     var lines = languages.ToDictionary(l => l, l => commentary.Lines(seed, l));
@@ -91,12 +93,32 @@ app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat
         : null;
     using var socket = await ctx.WebSockets.AcceptWebSocketAsync();
     using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted, lifetime.ApplicationStopping);
-    await new ReplayStreamer(lib.Get(seed), speed, crew, viewers, lines, notice, logger).StreamAsync(
-        (envelope, ct) => socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(envelope, StudioJson.Options),
-            WebSocketMessageType.Text, true, ct),
-        cts.Token);
-    if (socket.State == WebSocketState.Open)
-        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "full time", CancellationToken.None);
+    // Read from the socket so pings get answered and a viewer leaving stops the replay (and the crew) at once.
+    _ = Task.Run(async () =>
+    {
+        var buffer = new byte[1024];
+        try
+        {
+            while (socket.State == WebSocketState.Open)
+                if ((await socket.ReceiveAsync(buffer, cts.Token)).MessageType == WebSocketMessageType.Close) break;
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or WebSocketException) { }
+        await cts.CancelAsync();
+    });
+    try
+    {
+        await new ReplayStreamer(lib.Get(seed), speed, crew, viewers, lines, notice, logger, condensed).StreamAsync(
+            (envelope, ct) => socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(envelope, StudioJson.Options),
+                WebSocketMessageType.Text, true, ct),
+            cts.Token);
+        // The read loop above owns receiving, so only send our half of the close handshake.
+        if (socket.State == WebSocketState.Open)
+            await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "full time", CancellationToken.None);
+    }
+    catch (Exception ex) when (ex is OperationCanceledException or WebSocketException)
+    {
+        // The viewer left mid-match; nothing to do.
+    }
     return Results.Empty;
 });
 

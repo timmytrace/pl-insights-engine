@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { STUDIO, useReplay } from './useReplay'
+import { STUDIO, useReplay, type Pace } from './useReplay'
 import { Pitch } from './components/Pitch'
 import { Overlays } from './components/Overlays'
 import { Scoreboard } from './components/Scoreboard'
@@ -14,7 +14,13 @@ import { CommentaryBar } from './components/CommentaryBar'
 import { DEFAULT_VIEWERS, LANGS, spec, type Lang, type Viewer } from './viewers'
 import type { InsightCard, MatchInfo, Moment } from './types'
 
-const SPEEDS = [1, 5, 10, 20, 60]
+const PACES: { value: string; label: string }[] = [
+  { value: 'condensed', label: 'Condensed (~4 min)' },
+  { value: '1', label: 'Live 1×' },
+  { value: '5', label: '5×' },
+  { value: '10', label: '10×' },
+  { value: '20', label: '20× (crew may lag)' },
+]
 type View = 'studio' | 'fans'
 
 export default function App() {
@@ -23,7 +29,8 @@ export default function App() {
   const voice = useMemo(() => ({ on: voiceOn, lang: voiceLang }), [voiceOn, voiceLang])
   const { state, start, stop } = useReplay(voice)
   const [seed, setSeed] = useState(7)
-  const [speed, setSpeed] = useState(10)   // the live crew needs ~6-10 s per story; faster replays outrun Gallery's freshness budget
+  // Condensed by default: a full match in minutes, slowing for the big moments so the crew keeps up.
+  const [pace, setPace] = useState<Pace>('condensed')
   const [crewOn, setCrewOn] = useState(true)
   const [view, setView] = useState<View>('fans')
   const [viewers, setViewers] = useState<Viewer[]>(DEFAULT_VIEWERS)
@@ -64,13 +71,13 @@ export default function App() {
         <div className="brand">
           <span className="brand-mark" aria-hidden>●</span> Virtual Studio Crew
         </div>
-        <form className="controls" onSubmit={(e) => { e.preventDefault(); start(seed, speed, crewOn, crewOn ? viewers.map(spec) : []) }}>
+        <form className="controls" onSubmit={(e) => { e.preventDefault(); start(seed, pace, crewOn, crewOn ? viewers.map(spec) : []) }}>
           <label>Match seed
             <input type="number" min={1} value={seed} onChange={(e) => setSeed(Number(e.target.value) || 1)} />
           </label>
-          <label>Speed
-            <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
-              {SPEEDS.map((s) => <option key={s} value={s}>{s}×</option>)}
+          <label>Pace
+            <select value={String(pace)} onChange={(e) => setPace(e.target.value === 'condensed' ? 'condensed' : Number(e.target.value))}>
+              {PACES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
           </label>
           <label className="toggle">
@@ -91,7 +98,7 @@ export default function App() {
       </header>
 
       {state.notice && <div className="notice" role="status">{state.notice}</div>}
-      <Scoreboard info={state.info} snapshot={state.snapshot} status={state.status} />
+      <Scoreboard info={state.info} snapshot={state.snapshot} status={state.status} phase={state.phase} />
       <CrewBar active={state.speaker?.id} state={state.speaker?.state} />
 
       <nav className="tabs" aria-label="View">

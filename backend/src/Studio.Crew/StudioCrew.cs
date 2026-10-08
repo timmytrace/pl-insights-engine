@@ -27,13 +27,13 @@ public sealed class StudioCrew
     private readonly HostAgent _host;
     private readonly CrewOptions _options;
 
-    public StudioCrew(IChatClient chat, CrewOptions options)
+    public StudioCrew(IChatClient chat, CrewOptions options, bool highlightsOnly = false)
     {
         _options = options;
         _gaffer = Agent(chat, CrewPrompts.Gaffer, "The Gaffer", "Tactician: pitches why a moment matters");
         _ref = Agent(chat, CrewPrompts.Ref, "Ref", "Fact-checker: approves or rejects pitches");
         _host = new HostAgent(chat);
-        Gallery = new GalleryProducer(options);
+        Gallery = new GalleryProducer(options, highlightsOnly);
     }
 
     public GalleryProducer Gallery { get; }

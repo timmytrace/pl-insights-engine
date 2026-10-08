@@ -35,7 +35,12 @@ export interface ReplayState {
   commentary: Record<string, CommentaryLine[]>
   /** A message from the server, e.g. when the live crew is busy. */
   notice?: string
+  /** Where we are in the match. */
+  phase: Phase
 }
+
+export type Phase = 'pre' | '1H' | 'HT' | '2H' | 'FT'
+export type Pace = 'condensed' | number
 
 export interface VoiceSettings { on: boolean; lang: string }
 
@@ -52,7 +57,7 @@ const TAG_KINDS = new Set(['shot_speed', 'sprint_speed', 'milestone'])
 
 const emptyTally: CrewTally = { claimsChecked: 0, numbersChecked: 0, sentBack: 0, approved: 0, upgraded: 0, dropped: 0 }
 const COMMENTARY = 4
-const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {}, commentary: {} }
+const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {}, commentary: {}, phase: 'pre' }
 
 /**
  * Connects to the replay socket and folds the stream into render state. Overlay slots hold
@@ -77,12 +82,15 @@ export function useReplay(voice: VoiceSettings) {
     speaker.current?.stop()
   }, [])
 
-  const start = useCallback((seed: number, speed: number, crew: boolean, viewers: string[]) => {
+  const start = useCallback((seed: number, pace: Pace, crew: boolean, viewers: string[]) => {
     stop()
-    speedRef.current = speed
+    // Overlay timings scale with the replay speed; a condensed match averages about 10x.
+    speedRef.current = pace === 'condensed' ? 10 : pace
     setState({ ...initial, status: 'connecting' })
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
-    const query = new URLSearchParams({ seed: String(seed), speed: String(speed) })
+    const query = new URLSearchParams({ seed: String(seed) })
+    if (pace === 'condensed') query.set('mode', 'condensed')
+    else query.set('speed', String(pace))
     if (!crew) query.set('crew', 'off')
     if (viewers.length) query.set('viewers', viewers.join(','))
     const ws = new WebSocket(`${proto}://${location.host}/ws/replay?${query}`)
@@ -137,9 +145,13 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
       return { ...s, commentary: { ...s.commentary, [lang]: [...(s.commentary[lang] ?? []), env.data].slice(-COMMENTARY) } }
     }
     case 'event': {
+      const e = env.data.event
       const recent = [...s.recent, env.data].slice(-TRAIL)
-      const feed = FEED_TYPES.has(env.data.event.type) ? [env.data, ...s.feed].slice(0, FEED) : s.feed
-      return { ...s, recent, feed, events: { ...s.events, [env.data.event.id]: env.data.event } }
+      const feed = FEED_TYPES.has(e.type) ? [env.data, ...s.feed].slice(0, FEED) : s.feed
+      const phase: Phase = e.type === 'period_end' ? (e.period === 1 ? 'HT' : 'FT')
+        : e.type === 'kickoff' && e.clock === 0 ? '1H'
+        : e.type === 'kickoff' && e.clock === 2700 ? '2H' : s.phase
+      return { ...s, recent, feed, phase, events: { ...s.events, [e.id]: e } }
     }
     case 'snapshot':
       return { ...s, snapshot: env.data }
@@ -159,7 +171,7 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
         },
       }
     case 'end':
-      return { ...s, status: 'full_time', snapshot: env.data }
+      return { ...s, status: 'full_time', phase: 'FT', snapshot: env.data }
   }
 }
 

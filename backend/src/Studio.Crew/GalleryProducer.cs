@@ -13,8 +13,12 @@ public sealed record AirDecision(bool Air, string Reason);
 /// moments at once, and a story that arrives after play has moved on is worse than none.
 /// Gallery makes those calls with explicit rules and says why, so every decision is on record.
 /// </summary>
-public sealed class GalleryProducer(CrewOptions options)
+public sealed class GalleryProducer(CrewOptions options, bool highlightsOnly = false)
 {
+    // In a condensed replay only the headline moments get the crew; the rest keep their template.
+    private static readonly HashSet<MomentKind> Headline =
+        [MomentKind.Goal, MomentKind.BigChance, MomentKind.PressSurge, MomentKind.MomentumSwing];
+
     private int _inFlight;
 
     public int InFlight => Volatile.Read(ref _inFlight);
@@ -29,6 +33,8 @@ public sealed class GalleryProducer(CrewOptions options)
             case MomentKind.Milestone:
                 return new(CrewRoute.TemplateOnly, "Milestone tag; straight to air.");
         }
+        if (highlightsOnly && !Headline.Contains(m.Kind))
+            return new(CrewRoute.TemplateOnly, "Condensed match: headline moments only. The template covers this one.");
         if (Interlocked.Increment(ref _inFlight) > options.MaxConcurrentMoments)
         {
             Interlocked.Decrement(ref _inFlight);

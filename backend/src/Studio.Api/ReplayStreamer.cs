@@ -11,14 +11,25 @@ public sealed record Envelope(string Type, double T, object Data);
 /// Replays a simulated match through the pipeline in (scaled) real time. Each moment's template
 /// card goes out immediately; if Gallery sends the moment to the crew, the crew works on it in
 /// the background and its Control Room messages and upgraded card join the stream when ready.
+///
+/// A condensed replay sets its own pace, like a broadcaster's condensed match: quiet build-up
+/// races by, play slows right down around shots and goals so the commentary lands, and holds
+/// steady while the crew is writing a story so it still arrives fresh.
 /// </summary>
 public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, IReadOnlyList<ViewerProfile> viewers,
     IReadOnlyDictionary<string, IReadOnlyDictionary<int, CommentaryLine>>? commentary = null, string? notice = null,
-    ILogger? logger = null)
+    ILogger? logger = null, bool condensed = false)
 {
     private const double SnapshotEvery = 5;       // match seconds
     private const double MaxSleepSeconds = 2;     // dead-ball gaps don't stall the stream
     private static readonly TimeSpan CrewDrainTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan HalfTimeBreak = TimeSpan.FromSeconds(3);
+
+    // Condensed pace, in multiples of real time.
+    private const double QuietSpeed = 60;
+    private const double StorySpeed = 10;         // the crew needs ~6-10 s; Gallery's budget is 120 match s
+    private const double BigMomentSpeed = 4;
+    private double _slowUntil = double.NegativeInfinity;
 
     private readonly Channel<Envelope> _outbox = Channel.CreateUnbounded<Envelope>();
     private readonly List<Task> _crewWork = [];
@@ -33,7 +44,7 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
         double previousT = 0, lastSnapshot = double.NegativeInfinity;
         foreach (var e in match.Events)
         {
-            var wait = Math.Min((e.T - previousT) / speed, MaxSleepSeconds);
+            var wait = Math.Min((e.T - previousT) / Pace(), MaxSleepSeconds);
             await WaitAndDrain(TimeSpan.FromSeconds(Math.Max(wait, 0)), send, ct);
             previousT = e.T;
             Volatile.Write(ref _now, e.T);
@@ -58,6 +69,11 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
                 lastSnapshot = e.T;
                 await send(new Envelope("snapshot", e.T, pipeline.State.Snapshot()), ct);
             }
+
+            if (e.Type is EventType.Shot or EventType.Kickoff or EventType.PeriodEnd)
+                _slowUntil = e.T + (goal ? 25 : 12);
+            if (e is { Type: EventType.PeriodEnd, Period: 1 })
+                await WaitAndDrain(HalfTimeBreak, send, ct);
         }
 
         // Let the crew finish what it started, then close.
@@ -66,6 +82,13 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
         _outbox.Writer.TryComplete();
         await WaitAndDrain(TimeSpan.Zero, send, ct);
         await send(new Envelope("end", previousT, pipeline.State.Snapshot()), ct);
+    }
+
+    private double Pace()
+    {
+        if (!condensed) return speed;
+        if (Volatile.Read(ref _now) < _slowUntil) return BigMomentSpeed;
+        return _crewWork.Any(t => !t.IsCompleted) ? StorySpeed : QuietSpeed;
     }
 
     private async Task Dispatch(Moment m, InsightCard template, MatchState state,
