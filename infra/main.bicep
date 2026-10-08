@@ -4,8 +4,11 @@
 // existing Azure AI Foundry resource with a user-assigned managed identity, so no keys are
 // stored anywhere. Scales to zero when nobody is watching.
 
-@description('Location for the new resources. Defaults to the resource group location.')
+@description('Location for the registry, identity and logs. Defaults to the resource group location.')
 param location string = resourceGroup().location
+
+@description('Location for the Container Apps environment and app. Separate because Container Apps capacity varies by region.')
+param appLocation string = location
 
 @description('Name of the existing Azure AI Foundry (AIServices) account in this resource group.')
 param aiAccountName string
@@ -89,8 +92,8 @@ resource speechUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 }
 
 resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
-  name: '${name}-env'
-  location: location
+  name: '${name}-${appLocation}-env'
+  location: appLocation
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -104,7 +107,7 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 
 resource app 'Microsoft.App/containerApps@2024-03-01' = {
   name: name
-  location: location
+  location: appLocation
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: { '${identity.id}': {} }

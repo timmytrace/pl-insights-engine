@@ -8,7 +8,10 @@ timed, personalised insight graphics come out, ready to sit on screen alongside 
 Built for the *Synthetic Match Insights Engine for Premier League Studio* hackathon challenge.
 All clubs, players and match data are synthetic. No real match data is used.
 
-> **Status: phase 3 of 4 (fan experience).** The pipeline, the five-agent crew and personalised
+> **Live demo:** https://studio-crew.politebay-c6735be6.canadacentral.azurecontainerapps.io
+> (scales to zero when idle, so the first visit takes a few seconds to wake up).
+>
+> **Status: phase 4 of 4 (recap and deployment).** The pipeline, the five-agent crew and personalised
 > fan views run end to end on Azure OpenAI (`gpt-4.1-mini` in Azure AI Foundry, keyless sign-in),
 > or offline with a scripted model. After warm-up a story takes about 6–10 seconds from moment
 > to verified card, with every viewer's version written in parallel. See the [roadmap](#roadmap).
@@ -225,7 +228,9 @@ pwsh ./infra/deploy.ps1 -ResourceGroup rg-studio-crew -AiAccount <your-foundry-r
 ```
 
 The script registers the resource providers, deploys the template, builds the image in Azure
-Container Registry (no local Docker needed) and rolls the app onto it. To run the hosted demo
+Container Registry (no local Docker needed) and rolls the app onto it. The app and its environment
+take their own region (`-AppLocation`, default `canadacentral`) because Container Apps capacity
+varies by region; the AI resource can stay where it is. To run the hosted demo
 with the offline crew at no model cost:
 
 ```bash

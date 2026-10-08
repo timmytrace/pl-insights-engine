@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Deploys Virtual Studio Crew to Azure Container Apps.
 
@@ -20,10 +20,14 @@
 param(
     [Parameter(Mandatory)] [string] $ResourceGroup,
     [Parameter(Mandatory)] [string] $AiAccount,
-    [ValidateSet('azure', 'mock')] [string] $CrewMode = 'azure'
+    [ValidateSet('azure', 'mock')] [string] $CrewMode = 'azure',
+    # Container Apps capacity varies by region; East US was full on 7 Oct 2026.
+    [string] $AppLocation = 'canadacentral'
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+# The build log contains characters (like ✓) that crash the Azure CLI on a Windows console code page.
+$env:PYTHONIOENCODING = 'utf-8'
 
 function Invoke-Az { az @args; if ($LASTEXITCODE -ne 0) { throw "az $($args -join ' ') failed" } }
 
@@ -35,7 +39,7 @@ foreach ($ns in 'Microsoft.App', 'Microsoft.ContainerRegistry', 'Microsoft.Opera
 Write-Host "2/3 Deploying infrastructure..."
 $outputs = Invoke-Az deployment group create -g $ResourceGroup -n studio-crew `
     -f (Join-Path $PSScriptRoot 'main.bicep') `
-    -p aiAccountName=$AiAccount crewMode=$CrewMode `
+    -p aiAccountName=$AiAccount crewMode=$CrewMode appLocation=$AppLocation `
     --query properties.outputs -o json | ConvertFrom-Json
 
 $tag = (git -C $root rev-parse --short HEAD).Trim()
