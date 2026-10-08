@@ -12,6 +12,9 @@ builder.Services.AddSingleton<MatchLibrary>();
 var crewOptions = builder.Configuration.GetSection("Crew").Get<CrewOptions>() ?? new CrewOptions();
 builder.Services.AddSingleton(crewOptions);
 builder.Services.AddSingleton<IChatClient>(_ => ModelFactory.Create(crewOptions));
+builder.Services.AddHttpClient("speech");
+builder.Services.AddSingleton(sp => new RecapVoice(sp.GetRequiredService<IHttpClientFactory>().CreateClient("speech"), crewOptions));
+builder.Services.AddSingleton<RecapService>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5173"])
     .AllowAnyHeader()
@@ -21,17 +24,41 @@ var app = builder.Build();
 app.UseCors();
 app.UseWebSockets();
 
+// In the container the built frontend ships in wwwroot, so one origin serves the app, API and socket.
+var serveFrontend = app.Environment.WebRootPath is { } webRoot && Directory.Exists(webRoot);
+if (serveFrontend)
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+
 app.MapGet("/api/health", (CrewOptions crew) => Results.Ok(new
 {
     status = "ok",
     version = typeof(MatchPipeline).Assembly.GetName().Version?.ToString(),
     crew = crew.IsAzure ? $"azure:{crew.Deployment}" : "mock",
+    voices = !string.IsNullOrWhiteSpace(crew.SpeechRegion) && crew.IsAzure,
 }));
 
 var matches = app.MapGroup("/api/matches/{seed:int}");
 matches.MapGet("/", (int seed, MatchLibrary lib) => lib.Get(seed).Info);
 matches.MapGet("/events", (int seed, MatchLibrary lib) => lib.Get(seed).Events);
 matches.MapGet("/summary", (int seed, MatchLibrary lib) => lib.Summary(seed));
+
+// Full-time recap: a short crew conversation in the viewer's language, checked by Ref, plus its audio.
+matches.MapGet("/recap", async (int seed, string? lang, RecapService recaps) =>
+{
+    var result = await recaps.GetAsync(seed, Language(lang));
+    return new
+    {
+        result.Script,
+        hasAudio = result.Audio is not null,
+        result.AudioError,
+        voices = result.Script.Lines.Select(l => RecapVoice.VoiceFor(result.Script.Language, l.Speaker)),
+    };
+});
+matches.MapGet("/recap/audio", async (int seed, string? lang, RecapService recaps) =>
+    (await recaps.GetAsync(seed, Language(lang))).Audio is { } audio ? Results.File(audio, "audio/mpeg") : Results.NotFound());
 
 // Live replay: streams the match as if it were happening, `speed` times faster than real time.
 // `crew=off` streams template cards only. `viewers=analyst.en,casual.es,club.fr.home,player.en.H10`
@@ -57,6 +84,10 @@ app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat
     return Results.Empty;
 });
 
+if (serveFrontend) app.MapFallbackToFile("index.html");
+
 app.Run();
+
+static string Language(string? lang) => ViewerProfile.Languages.Contains(lang) ? lang! : "en";
 
 public partial class Program;

@@ -112,6 +112,13 @@ for the crew.
 moment on a pitch, captioning each one from the event data, then shows the verified story. Each
 step and each word traces back to evidence.
 
+**Full-time recap.** At the final whistle the crew talks the viewer through the match in their
+language: The Host opens, The Gaffer tells the tactical story through the key moments, Stats
+picks the numbers that sum it up, and Ref signs off on the fact-checking. Stats builds a
+full-time fact sheet, The Host writes the conversation, Ref checks every number in every line
+(and sends it back if one fails), and Azure AI Speech reads it with a different neural voice for
+each character. Hear a sample: [`docs/samples/recap-seed7-en.mp3`](docs/samples/recap-seed7-en.mp3).
+
 **Animated crew.** Avatars play a character clip for the state they're in (Ref raising the red
 card when a pitch is sent back, The Host on air) as soon as the clip is listed in
 [`frontend/public/crew/clips/manifest.json`](frontend/public/crew/clips/manifest.json). Until
@@ -205,6 +212,26 @@ To watch the live crew in the terminal, with timings:
 cd backend && dotnet run --project src/Studio.Cli -- crew --seed 7 --azure https://<your-resource>.openai.azure.com/ --limit 5
 ```
 
+## Deploy to Azure
+
+One container serves the overlay, the API and the replay WebSocket on Azure Container Apps,
+defined in [`infra/main.bicep`](infra/main.bicep). It signs in to your Azure AI Foundry resource
+with a user-assigned managed identity that holds only the roles it needs (Cognitive Services
+OpenAI User, Cognitive Services Speech User, AcrPull), so no keys are stored anywhere. It scales
+to zero when idle.
+
+```bash
+pwsh ./infra/deploy.ps1 -ResourceGroup rg-studio-crew -AiAccount <your-foundry-resource>
+```
+
+The script registers the resource providers, deploys the template, builds the image in Azure
+Container Registry (no local Docker needed) and rolls the app onto it. To run the hosted demo
+with the offline crew at no model cost:
+
+```bash
+az containerapp update -n studio-crew -g rg-studio-crew --set-env-vars Crew__Mode=mock
+```
+
 ## API
 
 | Endpoint | Returns |
@@ -213,6 +240,8 @@ cd backend && dotnet run --project src/Studio.Cli -- crew --seed 7 --azure https
 | `GET /api/matches/{seed}` | Match metadata and squads |
 | `GET /api/matches/{seed}/events` | Every event |
 | `GET /api/matches/{seed}/summary` | Full-time stats, all moments and all cards |
+| `GET /api/matches/{seed}/recap?lang=es` | The full-time recap script, checked by Ref, and whether audio is available |
+| `GET /api/matches/{seed}/recap/audio?lang=es` | The recap read by the crew's Azure neural voices (MP3) |
 | `WS /ws/replay?seed=7&speed=20` | Live stream of `info`, `event`, `snapshot`, `moment`, `card`, `crew` and `end` envelopes. Add `crew=off` for template cards only, and `viewers=analyst.en,casual.es,club.fr.home,player.en.H10` for personalised versions |
 
 JSON is camelCase with snake_case enum values.
@@ -225,9 +254,11 @@ backend/
   src/Studio.Crew     the five-agent crew on Microsoft Agent Framework, plus the offline model
   src/Studio.Api      ASP.NET Core minimal API + replay WebSocket
   src/Studio.Cli      dataset generation and inspection
-  tests/Studio.Tests  xUnit: metrics, simulator realism, moments, Ref's rulebook, crew loop, personas, languages, API, dataset drift
+  tests/Studio.Tests  xUnit: metrics, simulator realism, moments, Ref's rulebook, crew loop, personas, languages, recap, API, dataset drift
 frontend/             React + TypeScript + Vite overlay UI
+infra/                Bicep template and deploy script for Azure Container Apps
 data/sample/          committed synthetic dataset
+docs/samples/         a recorded full-time recap
 ```
 
 ## Roadmap
@@ -237,7 +268,7 @@ data/sample/          committed synthetic dataset
 | 7–10 Oct | **1. Foundations:** simulator, metrics, moments, replay API, overlay UI, CI ✅ |
 | 11–15 Oct | **2. Agent crew** on Microsoft Agent Framework: Stats, The Gaffer, Ref, Gallery, The Host, plus the Control Room ✅ (live on Azure OpenAI) |
 | 16–19 Oct | **3. Fan experience:** persona panes side by side, "Why did that happen?", The Host in three languages ✅ |
-| 20–22 Oct | **4. Recap and deployment:** spoken bilingual recap (Azure AI Speech), Container Apps + Static Web Apps |
+| 20–22 Oct | **4. Recap and deployment:** spoken recap in three languages (Azure AI Speech), Container Apps with managed identity ✅ |
 | 23–26 Oct | Demo video, pitch, submission |
 
 ## License

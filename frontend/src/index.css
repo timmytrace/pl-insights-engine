@@ -212,3 +212,15 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .why-story .avatar { border-radius: 50%; }
 .why-story p { margin: 2px 0 4px; color: #d6dde6; }
 @media (max-width: 760px) { .why-body { grid-template-columns: 1fr; } .player-strip { grid-template-columns: repeat(3, 1fr); } }
+
+/* Full-time recap */
+.tab-recap { margin-left: auto; border-color: #ff3b47 !important; color: var(--text) !important; }
+.recap { width: min(760px, 100%); }
+.recap-player { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.recap-player audio { width: min(420px, 100%); }
+.recap-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.recap-lines li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; border-left: 3px solid transparent; transition: border-color 0.2s, background 0.2s; }
+.recap-lines li .avatar { border-radius: 50%; box-shadow: 0 0 0 2px var(--crew); }
+.recap-lines li strong { color: var(--crew); font-size: 0.8rem; }
+.recap-lines li p { margin: 2px 0 0; color: #d6dde6; line-height: 1.4; }
+.recap-lines li.speaking { border-left-color: var(--crew); background: #1d2734; }

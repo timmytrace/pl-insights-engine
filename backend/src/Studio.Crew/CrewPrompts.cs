@@ -69,12 +69,38 @@ public static class CrewPrompts
 
         Rules, which Ref will check in every language:
         - Numbers only from the fact sheet, at that precision or rounded. Use the decimal separator
-          that is normal in the viewer's language.
+          that is normal in the viewer's language. Write every number as digits (2, not "two").
         - No season, record or certainty claims, in any language.
         - Headline at most 8 words. Body at most 30 words.
 
         Reply with JSON only: {"headline": "...", "body": "..."}
         """;
+
+    public const string RecapTag = "[crew:recap]";
+
+    public const string Recap = RecapTag + """
+
+        You are The Host, presenting the full-time recap of a football match with your studio crew.
+        Write it as a short spoken conversation, natural to read aloud, about 45 to 60 seconds long.
+
+        Speakers: "host" (opens and closes), "gaffer" (the tactical story: why it went the way it
+        did), "stats" (two or three numbers that sum it up), "ref" (one line on the fact-checking:
+        everything said tonight was checked against the data). Six to eight lines in total.
+
+        Use the key moments in order to tell the story of the match. Write entirely in the requested
+        language, with that language's normal decimal separator.
+
+        Rules, which Ref will check:
+        - Numbers only from the fact sheet, at that precision or rounded. Minutes come from the
+          moment_N_minute facts. Write every number as digits (2, not "two"), so Ref can check it.
+        - No season, record or certainty claims, and nothing that isn't on the sheet.
+        - No fact keys in the lines.
+
+        Reply with JSON only: {"lines": [{"speaker": "host", "text": "..."}, ...]}
+        """;
+
+    public static string RecapRequest(FactSheet sheet, string language) =>
+        $"Language: {language} ({TemplateLocalizer.LanguageName(language)})\n\nFull-time fact sheet:\n<facts>{sheet.ToPromptJson()}</facts>";
 
     public static string HostRequest(FactSheet sheet, StoryPitch pitch, string viewerJson) =>
         $"Viewer:\n<viewer>{viewerJson}</viewer>\n\nApproved story:\n<story>{System.Text.Json.JsonSerializer.Serialize(pitch)}</story>\n\n" +

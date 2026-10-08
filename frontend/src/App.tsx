@@ -9,6 +9,7 @@ import { ControlRoom } from './components/ControlRoom'
 import { CrewBar } from './components/CrewBar'
 import { FanView } from './components/FanView'
 import { WhyReplay } from './components/WhyReplay'
+import { RecapPanel } from './components/RecapPanel'
 import { DEFAULT_VIEWERS, spec, type Viewer } from './viewers'
 import type { InsightCard, MatchInfo, Moment } from './types'
 
@@ -24,6 +25,8 @@ export default function App() {
   const [viewers, setViewers] = useState<Viewer[]>(DEFAULT_VIEWERS)
   const [preview, setPreview] = useState<MatchInfo>()
   const [why, setWhy] = useState<{ moment: Moment; story?: InsightCard }>()
+  const [recapOpen, setRecapOpen] = useState(false)
+  const [recapSeed, setRecapSeed] = useState<number>()
   const running = state.status === 'live' || state.status === 'connecting'
 
   // Load the selected match's squads before kick-off, so the viewer pickers can name players.
@@ -35,6 +38,14 @@ export default function App() {
       .catch(() => {})
     return () => ctrl.abort()
   }, [seed])
+
+  // At full time, bring up the crew's recap of the match that just finished.
+  useEffect(() => {
+    if (state.status === 'full_time' && state.info) {
+      setRecapSeed(state.info.seed)
+      setRecapOpen(true)
+    }
+  }, [state.status, state.info])
 
   const openWhy = (momentId: string) => {
     const moment = state.moments[momentId]
@@ -73,6 +84,9 @@ export default function App() {
       <nav className="tabs" aria-label="View">
         <button type="button" className={view === 'fans' ? 'tab-active' : ''} onClick={() => setView('fans')}>Fan view</button>
         <button type="button" className={view === 'studio' ? 'tab-active' : ''} onClick={() => setView('studio')}>Studio</button>
+        <button type="button" className="tab-recap" onClick={() => { setRecapSeed(state.info?.seed ?? seed); setRecapOpen(true) }}>
+          Full-time recap
+        </button>
       </nav>
 
       {view === 'fans' ? (
@@ -96,6 +110,7 @@ export default function App() {
         </main>
       )}
 
+      {recapOpen && recapSeed != null && <RecapPanel seed={recapSeed} onClose={() => setRecapOpen(false)} />}
       {why && <WhyReplay info={state.info} moment={why.moment} events={state.events} story={why.story} onClose={() => setWhy(undefined)} />}
 
       <footer className="footer">All clubs, players and match data are synthetic. Characters by Timilehin Owolabi.</footer>

@@ -15,6 +15,15 @@ public sealed class CrewOptions
     /// <summary>API key. Leave empty to sign in with Microsoft Entra ID (DefaultAzureCredential).</summary>
     public string? ApiKey { get; set; }
 
+    /// <summary>Azure AI Speech region for the spoken recap, e.g. eastus. Empty turns the voices off.</summary>
+    public string? SpeechRegion { get; set; }
+
+    /// <summary>Full Azure resource id of the AI resource, used with Entra ID sign-in for Speech.</summary>
+    public string? SpeechResourceId { get; set; }
+
+    /// <summary>Speech key, if not signing in with Entra ID.</summary>
+    public string? SpeechKey { get; set; }
+
     public int MaxConcurrentMoments { get; set; } = 3;
     public int MaxRevisions { get; set; } = 2;
 
