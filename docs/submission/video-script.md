@@ -12,8 +12,11 @@
 - Match seed **7**, pace **Condensed**, AI crew **on**, 🔊 Commentary **on** (English).
   The four default viewers are what we want: Analyst (EN), Casual fan (ES), Player focus on
   Tomas Oduya (FR), Metric focus: pressing (EN).
-- Seed 7's story: a goal at 22', momentum swings, a pressing surge, an equaliser just after
-  half-time. Run it once all the way through before recording so you know where the moments fall.
+- Seed 7's story: **Tomas Oduya scores a hat-trick** (21', 35', 77') for Harbour Town, who press
+  harder and harder (pressing surges at 39', 55', 70'), before Udo Jansen pulls one back at 87'
+  for 3–1. Oduya is the player the default player-focus pane follows, so his hat-trick lands in
+  that pane. Run the match once all the way through before recording so you know where the
+  moments fall; in condensed mode the first goal arrives about a minute in.
 - Record the screen with OBS (free) at 1080p/30. Record the voiceover separately so you can re-take
   lines, then lay it over the footage. Keep the app's own audio (the commentary voice and the recap)
   at the moments marked below.
@@ -27,9 +30,9 @@
 | **0:08–0:22** | Press **Kick off**. The four Fan View panes come alive: players moving, captions in English, Spanish and French. | This is Virtual Studio Crew: an AI production crew on Azure that turns live match events into explained, personalised graphics, for every fan at once. |
 | **0:22–0:30** | Zoom on the Control Room as the first story starts: Stats' brief, The Gaffer's pitch. | Behind the screen, five agents work every moment. Stats freezes the facts. The Gaffer pitches why it matters. |
 | **0:30–0:42** | Hold on a **Ref "Sent back"** line, e.g. *"It's minute 14: possession for the match doesn't mean anything yet."* Then the revision and **Verified**. (Use Ref's red-card clip here if you've rendered it.) | And Ref checks every number and every claim against the data. Anything that doesn't hold up goes back. Nothing unverified reaches air. |
-| **0:42–0:52** | A pane's template graphic swaps for the crew's version with **✓ Verified by Ref**. Let the app's commentary voice play over a shot or the 22' goal. | Gallery, the producer, decides what still deserves air, and The Host presents it, while the commentary calls the match live. |
+| **0:42–0:52** | A pane's template graphic swaps for the crew's version with **✓ Verified by Ref**. Let the app's commentary voice play over Oduya's 21' goal. | Gallery, the producer, decides what still deserves air, and The Host presents it, while the commentary calls the match live. |
 | **0:52–1:05** | Pan across the four panes on the same moment: analyst numbers, casual Spanish, the player-focus stat strip, the pressing chart. | Same moment, four fans: numbers for the analyst, the story in Spanish for a casual fan, one player for another, pressing for a fourth. Each version re-checked by Ref. |
-| **1:05–1:18** | Click **Why did that happen?** on the goal. Let the replay step through the build-up to the verified story. | Any story can explain itself. Why did that happen? The crew replays the exact events behind it, then the verified explanation. |
+| **1:05–1:18** | Click **Why did that happen?** on one of Oduya's goals. Let the replay step through the build-up to the verified story. | Any story can explain itself. Why did that happen? The crew replays the exact events behind it, then the verified explanation. |
 | **1:18–1:32** | Quick cuts: the workflow diagram in the README; the evaluation table (first-time approval, time to air); an Application Insights trace of one moment. | A Microsoft Agent Framework workflow, evaluated with Foundry as the judge and traced in Application Insights. Evaluation caught Ref being too strict: fixing it lifted first-time approval from 53 to 77 percent. |
 | **1:32–1:45** | Full time. The recap panel opens; let **3–4 seconds** of the Azure voices play, with the line highlighting. | At the final whistle, the crew talks you through the match, in your language, every number checked. |
 | **1:45–1:55** | End card: *Azure AI Foundry · Microsoft Agent Framework · Azure AI Speech · Azure Container Apps*, the GitHub URL, the live URL. | Virtual Studio Crew. Explained, verified, and made for every fan. |
