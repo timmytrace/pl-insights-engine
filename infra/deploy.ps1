@@ -44,7 +44,14 @@ $outputs = Invoke-Az deployment group create -g $ResourceGroup -n studio-crew `
 
 $tag = (git -C $root rev-parse --short HEAD).Trim()
 Write-Host "3/3 Building image studio-crew:$tag in $($outputs.registryName.value)..."
-Invoke-Az acr build -r $outputs.registryName.value -t "studio-crew:$tag" -f (Join-Path $root 'Dockerfile') $root | Out-Null
+# Queue the build without streaming its log (the CLI can crash printing it on Windows), then wait.
+$runId = Invoke-Az acr build -r $outputs.registryName.value -t "studio-crew:$tag" -f (Join-Path $root 'Dockerfile') $root `
+    --no-logs --query runId -o tsv
+do {
+    Start-Sleep -Seconds 15
+    $status = Invoke-Az acr task show-run -r $outputs.registryName.value --run-id $runId --query status -o tsv
+} while ($status -in 'Queued', 'Started', 'Running')
+if ($status -ne 'Succeeded') { throw "Image build $runId finished as $status. See: az acr task logs -r $($outputs.registryName.value) --run-id $runId" }
 Invoke-Az containerapp update -n $outputs.appName.value -g $ResourceGroup --image "$($outputs.registryServer.value)/studio-crew:$tag" | Out-Null
 
 Write-Host ""
