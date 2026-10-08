@@ -74,6 +74,22 @@ public sealed class FactSheet(string momentId, string kind, int minute, double m
         lock (_gate) return _facts.GetValueOrDefault(key);
     }
 
+    /// <summary>
+    /// The fact a citation refers to. Models cite keys ("distanceM"), keys with a group in front
+    /// ("about_this_moment.xg") or the label ("Distance", "ball speed kmh"); all point at the same fact.
+    /// </summary>
+    public Fact? Resolve(string cited)
+    {
+        var key = cited.Split('.').Last().Trim();
+        if (Get(key) is { } exact) return exact;
+        var wanted = Normalise(key);
+        lock (_gate)
+            return _facts.Values.FirstOrDefault(f => Normalise(f.Key) == wanted)
+                   ?? _facts.Values.FirstOrDefault(f => Normalise(f.Label) == wanted);
+    }
+
+    private static string Normalise(string s) => new(s.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
     public bool Has(string key)
     {
         lock (_gate) return _facts.ContainsKey(key);
@@ -94,6 +110,10 @@ public sealed class FactSheet(string momentId, string kind, int minute, double m
             context = facts.Where(f => !f.AboutMoment).ToDictionary(f => f.Key, Entry),
         });
     }
+
+    /// <summary>The sheet as plain lines ("Label: value unit"), e.g. as grounding context for an evaluator.</summary>
+    public string ToReadableText() =>
+        string.Join(Environment.NewLine, Facts.Select(f => $"{f.Label}: {f.Value}{(f.Unit is null ? "" : " " + f.Unit)}"));
 
     /// <summary>Read the sheet back out of a prompt (used by the offline model): key → value across both groups.</summary>
     public static Dictionary<string, JsonElement> ReadPromptFacts(JsonElement root)

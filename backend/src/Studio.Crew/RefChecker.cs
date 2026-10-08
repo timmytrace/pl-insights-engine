@@ -58,14 +58,14 @@ public static partial class RefChecker
         {
             if (claim.Facts.Count == 0)
                 reasons.Add($"\"{claim.Text}\" doesn't cite any facts.");
-            foreach (var key in claim.Facts.Where(k => !sheet.Has(Key(k))))
+            foreach (var key in claim.Facts.Where(k => sheet.Resolve(k) is null))
                 reasons.Add($"\"{claim.Text}\" cites '{key}', which isn't on the fact sheet.");
         }
 
         // Match-total percentages after a few minutes are noise, not insight.
         if (sheet.Minute < EarlyMinutes)
-            foreach (var key in pitch.Claims.SelectMany(c => c.Facts).Select(Key).Distinct())
-                if (sheet.Get(key) is { MatchTotal: true } f)
+            foreach (var f in pitch.Claims.SelectMany(c => c.Facts).Select(sheet.Resolve).OfType<Fact>().Distinct())
+                if (f.MatchTotal)
                     reasons.Add($"It's minute {sheet.Minute}: {f.Label.ToLowerInvariant()} for the match doesn't mean anything yet.");
 
         // Internal fact names are for the crew, never for the screen.

@@ -1,6 +1,8 @@
 using System.Net.WebSockets;
 using System.Text.Json;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Http.Json;
+using OpenTelemetry.Trace;
 using Microsoft.Extensions.AI;
 using Studio.Api;
 using Studio.Crew;
@@ -16,6 +18,15 @@ builder.Services.AddHttpClient("speech");
 builder.Services.AddSingleton(sp => new RecapVoice(sp.GetRequiredService<IHttpClientFactory>().CreateClient("speech"), crewOptions));
 builder.Services.AddSingleton<RecapService>();
 builder.Services.AddSingleton<UsageGuard>();
+
+// Traces to Application Insights when deployed: every replay, crew step, agent run and model call,
+// with Ref's verdicts as tags. Locally there's no connection string and nothing is exported.
+if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+{
+    builder.Services.AddOpenTelemetry()
+        .UseAzureMonitor()
+        .WithTracing(t => t.AddSource(CrewTelemetry.SourceName, CrewTelemetry.ModelSourceName));
+}
 builder.Services.AddSingleton<CommentaryService>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5173"])
@@ -88,10 +99,15 @@ app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat
     var seed = int.TryParse(ctx.Request.Query["seed"], out var s) ? s : 7;
     var speed = double.TryParse(ctx.Request.Query["speed"], out var sp) ? Math.Clamp(sp, 1, 10_000) : 10;
     var condensed = ctx.Request.Query["mode"] == "condensed";
+    using var replaySpan = CrewTelemetry.Source.StartActivity("replay");
+    replaySpan?.SetTag("match.seed", seed);
+    replaySpan?.SetTag("replay.mode", condensed ? "condensed" : $"{speed}x");
     var wantsCrew = ctx.Request.Query["crew"] != "off";
     using var crewSlot = wantsCrew ? usage.TryStartCrewReplay() : null;
     var crew = crewSlot is null ? null : new StudioCrew(chat, crewOptions, highlightsOnly: condensed);
     var viewers = ViewerProfile.ParseList(ctx.Request.Query["viewers"]);
+    replaySpan?.SetTag("replay.crew", crew is not null);
+    replaySpan?.SetTag("replay.viewers", string.Join(",", viewers.Select(v => v.Id)));
     var languages = viewers.Select(v => v.Language).Append("en").Distinct();
     var lines = languages.ToDictionary(l => l, l => commentary.Lines(seed, l));
     var notice = wantsCrew && crew is null

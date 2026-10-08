@@ -10,6 +10,9 @@ namespace Studio.Crew;
 
 public sealed record CrewResult(InsightCard? Card, Verdict? Verdict, int Rounds, IReadOnlyList<HostVersion> Versions)
 {
+    /// <summary>Every pitch The Gaffer made, with Ref's verdict on it, in order.</summary>
+    public IReadOnlyList<(StoryPitch Pitch, Verdict Verdict)> Drafts { get; init; } = [];
+
     public static CrewResult NotAired(Verdict? verdict, int rounds) => new(null, verdict, rounds, []);
 }
 
@@ -33,6 +36,7 @@ public sealed class CrewRun(Briefing briefing, InsightCard template, IReadOnlyLi
     public bool Air { get; set; }
     public InsightCard? Card { get; set; }
     public IReadOnlyList<HostVersion> Versions { get; set; } = [];
+    public List<(StoryPitch Pitch, Verdict Verdict)> Drafts { get; } = [];
 
     [MemberNotNullWhen(true, nameof(Pitch), nameof(Verdict))]
     public bool Approved => Verdict is { Approved: true } && Pitch is not null;
@@ -88,7 +92,10 @@ public sealed class StudioCrew
             Description = description,
             ChatOptions = new ChatOptions { Instructions = instructions },
             AllowConcurrentInvocation = true,
-        });
+        })
+        .AsBuilder()
+        .UseOpenTelemetry(CrewTelemetry.SourceName)
+        .Build();
 
     public Briefing Brief(Moment m, MatchState state) => _stats.Brief(m, state);
 
@@ -113,9 +120,10 @@ public sealed class StudioCrew
                         throw new InvalidOperationException("The crew workflow failed.", error.Data as Exception);
                 }
             }
-            return job.Card is { } card
+            var result = job.Card is { } card
                 ? new CrewResult(card, job.Verdict, job.Rounds, job.Versions)
                 : CrewResult.NotAired(job.Verdict, job.Rounds);
+            return result with { Drafts = job.Drafts };
         }
         finally
         {
@@ -143,6 +151,7 @@ public sealed class StudioCrew
         return new WorkflowBuilder(stats)
             .WithName("Virtual Studio Crew")
             .WithDescription("Stats briefs, The Gaffer pitches, Ref checks, Gallery decides, The Host presents.")
+            .WithOpenTelemetry(activitySource: CrewTelemetry.Source)
             .AddEdge(stats, gaffer)
             .AddEdge(gaffer, referee)
             .AddEdge<CrewRun>(referee, gaffer, r => r!.CanRevise(_options.MaxRevisions), "sent back")
@@ -157,7 +166,14 @@ public sealed class StudioCrew
     private static ExecutorBinding Step(string id, Func<CrewRun, CancellationToken, Task> step) =>
         ((Func<CrewRun, IWorkflowContext, CancellationToken, ValueTask<CrewRun>>)(async (run, _, ct) =>
         {
+            using var activity = CrewTelemetry.Source.StartActivity($"crew {id}");
+            activity?.SetTag("crew.role", id);
+            activity?.SetTag("moment.id", run.Briefing.Moment.Id);
+            activity?.SetTag("moment.kind", run.Briefing.Moment.Kind.ToString());
             await step(run, ct);
+            activity?.SetTag("crew.round", run.Rounds);
+            if (run.Verdict is { } v) activity?.SetTag("ref.approved", v.Approved);
+            if (id == "Gallery") activity?.SetTag("gallery.air", run.Air);
             return run;
         })).BindAsExecutor(id);
 
@@ -205,6 +221,7 @@ public sealed class StudioCrew
             if (verdict.Approved && await Review(sheet, pitch, ct) is { Approved: false } review)
                 verdict = verdict with { Approved = false, Reasons = review.Reasons ?? ["Ref isn't convinced."] };
             run.Verdict = verdict;
+            run.Drafts.Add((pitch, verdict));
             run.Say(CrewRole.Ref, CrewMessageKind.Verdict, verdict.Approved
                     ? $"Checked {Plural(verdict.ClaimsChecked, "claim")} and {Plural(verdict.NumbersChecked, "number")}. Clean. Approved."
                     : $"Rejected. {string.Join(" ", verdict.Reasons)}",

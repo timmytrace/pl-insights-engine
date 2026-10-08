@@ -162,6 +162,26 @@ card when a pitch is sent back, The Host on air) as soon as the clip is listed i
 [`frontend/public/crew/clips/manifest.json`](frontend/public/crew/clips/manifest.json). Until
 then they show the still portrait.
 
+## Evaluation
+
+The live crew is measured on real simulated matches with `Microsoft.Extensions.AI.Evaluation`,
+using the Foundry deployment as the judge: groundedness against the fact sheet, relevance,
+coherence and fluency, for The Gaffer's first drafts and for what aired, plus Ref's record and
+time to air. The first run found Ref was rejecting pitches over citation format rather than
+facts; after fixing that, first-time approval rose from 53% to 77% and the median time from
+moment to verified card fell from 10.8 s to 8.5 s. Full report:
+[`docs/evaluation`](docs/evaluation/README.md).
+
+```bash
+cd backend && dotnet run --project src/Studio.Cli -c Release -- evaluate --azure https://<your-resource>.openai.azure.com/
+```
+
+## Observability
+
+Every replay, workflow step, agent run and model call is traced with OpenTelemetry and exported
+to Application Insights when deployed: a single trace follows a moment from Stats to The Host,
+with Ref's verdicts, revision rounds and Gallery's decision as tags.
+
 ## Metrics
 
 All metrics are pure functions in [`Pitch.cs`](backend/src/Studio.Engine/Pitch.cs) and
@@ -192,7 +212,9 @@ for the engine to find from the data alone.
 
 A sample match is committed at [`data/sample/seed-7`](data/sample/seed-7): `match.json`
 holds the metadata and squads, and `events.jsonl` has one event per line. A test fails if the
-sample drifts from the generator.
+sample drifts from the generator. [`data/synthetic`](data/synthetic/README.md) adds a
+100-match summary, five full event files as CSV, and a data card with the schema, measured
+distributions against real top-flight football, and known deviations.
 
 ## Run it
 
@@ -327,6 +349,8 @@ frontend/             React + TypeScript + Vite overlay UI
 infra/                Bicep template and deploy script for Azure Container Apps
 data/sample/          committed synthetic dataset
 docs/samples/         a recorded full-time recap
+docs/evaluation/      the crew's evaluation reports (before and after the citation fix)
+data/synthetic/       100-match summary, event CSVs and the data card
 ```
 
 ## Roadmap

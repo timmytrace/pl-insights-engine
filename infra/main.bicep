@@ -49,6 +49,17 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
+// Traces from the crew: every replay, workflow step, agent run and model call.
+resource insights 'Microsoft.Insights/components@2020-02-02' = {
+  name: '${name}-insights'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logs.id
+  }
+}
+
 resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: take('${replace(name, '-', '')}${uniqueString(resourceGroup().id)}', 50)
   location: location
@@ -137,6 +148,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'Crew__SpeechRegion', value: ai.location }
             { name: 'Crew__SpeechResourceId', value: ai.id }
             { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId }   // DefaultAzureCredential picks the managed identity
+            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insights.properties.ConnectionString }
           ]
           probes: [
             { type: 'Liveness', httpGet: { path: '/api/health', port: 8080 }, periodSeconds: 30 }
@@ -153,3 +165,4 @@ output url string = 'https://${app.properties.configuration.ingress.fqdn}'
 output registryName string = registry.name
 output registryServer string = registry.properties.loginServer
 output appName string = app.name
+output insightsName string = insights.name

@@ -32,7 +32,7 @@ $env:PYTHONIOENCODING = 'utf-8'
 function Invoke-Az { az @args; if ($LASTEXITCODE -ne 0) { throw "az $($args -join ' ') failed" } }
 
 Write-Host "1/3 Registering resource providers..."
-foreach ($ns in 'Microsoft.App', 'Microsoft.ContainerRegistry', 'Microsoft.OperationalInsights', 'Microsoft.ManagedIdentity') {
+foreach ($ns in 'Microsoft.App', 'Microsoft.ContainerRegistry', 'Microsoft.OperationalInsights', 'Microsoft.ManagedIdentity', 'Microsoft.Insights') {
     Invoke-Az provider register --namespace $ns --wait | Out-Null
 }
 

@@ -85,6 +85,21 @@ switch (command)
         }
         break;
 
+    case "evaluate":
+        // evaluate --azure <endpoint> [--deployment gpt-4.1-mini] [--seeds 3,7] [--per-seed 15] [--out ../docs/evaluation]
+        if (args.Contains("--report-only"))
+            return await Evaluation.ReportOnlyAsync(Arg("--out") ?? Path.Combine("..", "docs", "evaluation"),
+                Arg("--deployment") ?? "gpt-4.1-mini", (Arg("--seeds") ?? "3,7").Split(',').Select(int.Parse).ToArray());
+        if (Arg("--azure") is not { } evalEndpoint) { Console.Error.WriteLine("evaluate needs --azure <endpoint>"); return 1; }
+        return await Evaluation.RunAsync(evalEndpoint, Arg("--deployment") ?? "gpt-4.1-mini",
+            (Arg("--seeds") ?? "3,7").Split(',').Select(int.Parse).ToArray(), int.Parse(Arg("--per-seed") ?? "15"),
+            Arg("--out") ?? Path.Combine("..", "docs", "evaluation"));
+
+    case "dataset":
+        // dataset [--seeds 1-100] [--events 1-5] [--out ../data/synthetic]
+        return Dataset.Write(Dataset.ParseRange(Arg("--seeds") ?? "1-100"), Dataset.ParseRange(Arg("--events") ?? "1-5"),
+            Arg("--out") ?? Path.Combine("..", "data", "synthetic"));
+
     case "workflow":
         // The crew's Agent Framework workflow, drawn by the framework itself.
         Console.WriteLine(Microsoft.Agents.AI.Workflows.WorkflowVisualizer.ToMermaidString(

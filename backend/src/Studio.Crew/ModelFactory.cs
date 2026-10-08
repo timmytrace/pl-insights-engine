@@ -15,7 +15,7 @@ public static class ModelFactory
     /// </summary>
     public static IChatClient Create(CrewOptions o)
     {
-        if (!o.IsAzure) return new ScriptedChatClient(o.MockLatencyMs);
+        if (!o.IsAzure) return Traced(new ScriptedChatClient(o.MockLatencyMs));
 
         if (string.IsNullOrWhiteSpace(o.Endpoint) || string.IsNullOrWhiteSpace(o.Deployment))
             throw new InvalidOperationException("Crew:Mode is 'azure' but Crew:Endpoint or Crew:Deployment is missing.");
@@ -28,7 +28,11 @@ public static class ModelFactory
             : new ChatClient(o.Deployment, new ApiKeyCredential(o.ApiKey), clientOptions);
 #pragma warning restore OPENAI001
 
-        // ChatClientAgent adds function invocation itself, so the raw client is passed through.
-        return chat.AsIChatClient();
+        // ChatClientAgent adds function invocation itself; we only add tracing.
+        return Traced(chat.AsIChatClient());
     }
+
+    /// <summary>Every model call becomes a span (model, tokens, latency) under the crew's trace.</summary>
+    private static IChatClient Traced(IChatClient client) =>
+        client.AsBuilder().UseOpenTelemetry(sourceName: CrewTelemetry.ModelSourceName).Build();
 }

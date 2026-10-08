@@ -61,6 +61,16 @@ public class RefCheckerTests
     }
 
     [Fact]
+    public void Citations_may_use_the_fact_label()
+    {
+        var sheet = Sheet();
+        sheet.Add("distanceM", "Distance", 33.5, "m");
+        sheet.Add("ballSpeedKmh", "Ball speed", 73.9, "km/h");
+        Assert.True(RefChecker.Check(P("A 33.5 m pass at 73.9 km/h.", new Claim("c", ["Distance", "ball speed kmh"])), sheet).Approved);
+        Assert.False(RefChecker.Check(P("Fine.", new Claim("c", ["Altitude"])), sheet).Approved);
+    }
+
+    [Fact]
     public void Internal_fact_names_never_reach_the_screen()
     {
         var v = RefChecker.Check(P("Seven shots (team_shots).", new Claim("c", ["team_shots"])), Sheet());
