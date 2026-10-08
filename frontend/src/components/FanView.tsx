@@ -1,10 +1,11 @@
 import type { InsightCard, MatchInfo, MatchSnapshot, Moment } from '../types'
 import type { ReplayState } from '../useReplay'
-import { LANGS, PERSONAS, personaLabel, spec, type Viewer } from '../viewers'
+import { LANGS, METRICS, PERSONAS, personaLabel, spec, type Viewer } from '../viewers'
 import { Pitch } from './Pitch'
 import { Overlays } from './Overlays'
 import { Avatar } from './Avatar'
 import { CommentaryBar } from './CommentaryBar'
+import { MetricPanel } from './MetricPanel'
 
 interface Props {
   state: ReplayState
@@ -57,7 +58,8 @@ function FanPane({ viewer, info, state, running, onChange, onRemove, onWhy }: Pa
   const stories = state.stories[key] ?? []
   const players = info ? [...info.home.starters.map((p) => ({ ...p, team: info.home.shortName })), ...info.away.starters.map((p) => ({ ...p, team: info.away.shortName }))] : []
   const subject = viewer.persona === 'club' && info ? info[viewer.club ?? 'home'].name
-    : viewer.persona === 'player' ? players.find((p) => p.id === viewer.player)?.name : undefined
+    : viewer.persona === 'player' ? players.find((p) => p.id === viewer.player)?.name
+    : viewer.persona === 'metric' ? METRICS.find((m) => m.id === (viewer.metric ?? 'xg'))?.label : undefined
 
   return (
     <article className="fan-pane">
@@ -83,6 +85,11 @@ function FanPane({ viewer, info, state, running, onChange, onRemove, onWhy }: Pa
             <option value="away">{info?.away.name ?? 'Away'}</option>
           </select>
         )}
+        {viewer.persona === 'metric' && (
+          <select value={viewer.metric ?? 'xg'} aria-label="Metric" onChange={(e) => onChange({ ...viewer, metric: e.target.value as Viewer['metric'] })}>
+            {METRICS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+          </select>
+        )}
         {viewer.persona === 'player' && (
           <select value={viewer.player ?? 'H10'} aria-label="Player" onChange={(e) => onChange({ ...viewer, player: e.target.value })}>
             {players.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.team})</option>)}
@@ -96,6 +103,7 @@ function FanPane({ viewer, info, state, running, onChange, onRemove, onWhy }: Pa
       <CommentaryBar lines={state.commentary[viewer.lang]} />
 
       {viewer.persona === 'player' && <PlayerStrip snapshot={state.snapshot} playerId={viewer.player} />}
+      {viewer.persona === 'metric' && <MetricPanel info={info} metric={viewer.metric ?? 'xg'} history={state.history} />}
 
       <ol className="fan-stories">
         {stories.length === 0 && <li className="muted">Stories for this viewer appear here.</li>}

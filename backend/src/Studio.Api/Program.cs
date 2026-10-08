@@ -47,6 +47,12 @@ matches.MapGet("/", (int seed, MatchLibrary lib) => lib.Get(seed).Info);
 matches.MapGet("/events", (int seed, MatchLibrary lib) => lib.Get(seed).Events);
 matches.MapGet("/summary", (int seed, MatchLibrary lib) => lib.Summary(seed));
 
+// Graphics partners: the match's overlays as a timed, layered timeline (docs/overlay-timeline.schema.json).
+matches.MapGet("/overlays", (int seed, string? viewer, MatchLibrary lib) =>
+    viewer is not null && ViewerProfile.Parse(viewer) is null
+        ? Results.BadRequest("Unknown viewer. Use a profile such as analyst.en, casual.es, club.fr.home, player.en.H10 or metric.en.pressing.")
+        : Results.Ok(OverlayTimeline.Build(lib.Summary(seed), viewer is null ? null : ViewerProfile.Parse(viewer))));
+
 // Full-time recap: a short crew conversation in the viewer's language, checked by Ref, plus its audio.
 matches.MapGet("/recap", async (int seed, string? lang, RecapService recaps) =>
 {

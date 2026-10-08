@@ -179,6 +179,7 @@ public sealed class StudioCrew
         Persona.Casual => "Casual",
         Persona.ClubFan => "Club fan",
         Persona.PlayerFocus => "Player focus",
+        Persona.MetricFocus => $"Metric focus: {v.Metric}",
         _ => v.Id,
     };
 

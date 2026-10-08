@@ -94,6 +94,7 @@ public sealed class TemplateCardWriter : ICardWriter
         "hat_trick" => "Hat-trick!",
         "brace" => "Second goal of the match",
         "passes_completed" => $"{m.Facts["passesCompleted"]} completed passes ({m.Facts["accuracyPct"]}% accuracy)",
+        "distance" => $"First on the team to {m.Facts["thresholdKm"]} km covered",
         _ => milestone,
     };
 }

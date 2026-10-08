@@ -63,6 +63,15 @@ public class MomentTests
     }
 
     [Fact]
+    public void Distance_tags_go_to_the_first_on_each_team_to_each_threshold()
+    {
+        var (_, moments, _) = Run(7);
+        var tags = moments.Where(m => m.Kind == MomentKind.Milestone && (string)m.Facts["milestone"] == "distance").ToList();
+        Assert.InRange(tags.Count, 2, 4);
+        Assert.Equal(tags.Count, tags.Select(m => (m.Team, m.Facts["thresholdKm"])).Distinct().Count());
+    }
+
+    [Fact]
     public void Cards_are_timed_and_renderable()
     {
         var (_, moments, cards) = Run(7);

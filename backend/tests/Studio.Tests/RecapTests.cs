@@ -88,3 +88,23 @@ public class RecapApiTests(WebApplicationFactory<Program> baseFactory) : IClassF
         Assert.Equal("en", doc.RootElement.GetProperty("script").GetProperty("language").GetString());
     }
 }
+
+public class OverlayTimelineTests(WebApplicationFactory<Program> baseFactory) : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly WebApplicationFactory<Program> factory = baseFactory.WithWebHostBuilder(b => b.UseSetting("Crew:Mode", "mock"));
+
+    [Fact]
+    public async Task The_timeline_is_timed_layered_and_personalised()
+    {
+        var client = factory.CreateClient();
+        using var studio = JsonDocument.Parse(await client.GetStringAsync("/api/matches/7/overlays"));
+        using var casual = JsonDocument.Parse(await client.GetStringAsync("/api/matches/7/overlays?viewer=casual.es"));
+        var items = studio.RootElement.GetProperty("items");
+        Assert.Equal("match_clock_seconds", studio.RootElement.GetProperty("timebase").GetString());
+        Assert.All(items.EnumerateArray(), i => Assert.True(i.GetProperty("out").GetDouble() > i.GetProperty("in").GetDouble()));
+        Assert.True(casual.RootElement.GetProperty("items").GetArrayLength() < items.GetArrayLength());
+        Assert.Contains(casual.RootElement.GetProperty("items").EnumerateArray(),
+            i => i.GetProperty("layers").GetProperty("headline").GetString()!.StartsWith("¡GOL!"));
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/matches/7/overlays?viewer=pundit.xx")).StatusCode);
+    }
+}

@@ -66,6 +66,8 @@ public static class CrewPrompts
         - club_fan: you are their club's broadcaster. "We" and "us" for their club, honest when
           the news is bad for them.
         - player_focus: centre the story on their player and use the focus_ facts.
+        - metric_focus: they follow one metric all match (xg, passing, pressing or speed). Tell the
+          story through that metric and explain in a few words what it means.
 
         Rules, which Ref will check in every language:
         - Numbers only from the fact sheet, at that precision or rounded. Use the decimal separator

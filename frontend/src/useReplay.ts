@@ -37,6 +37,14 @@ export interface ReplayState {
   notice?: string
   /** Where we are in the match. */
   phase: Phase
+  /** Each team's key metrics over the match, sampled every 30 match seconds, for the metric-focus pane. */
+  history: MetricPoint[]
+}
+
+export interface MetricPoint {
+  clock: number
+  home: { xg: number; passing: number; pressing?: number; speed: number }
+  away: { xg: number; passing: number; pressing?: number; speed: number }
 }
 
 export type Phase = 'pre' | '1H' | 'HT' | '2H' | 'FT'
@@ -57,7 +65,7 @@ const TAG_KINDS = new Set(['shot_speed', 'sprint_speed', 'milestone'])
 
 const emptyTally: CrewTally = { claimsChecked: 0, numbersChecked: 0, sentBack: 0, approved: 0, upgraded: 0, dropped: 0 }
 const COMMENTARY = 4
-const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {}, commentary: {}, phase: 'pre' }
+const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {}, commentary: {}, phase: 'pre', history: [] }
 
 /**
  * Connects to the replay socket and folds the stream into render state. Overlay slots hold
@@ -153,8 +161,18 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
         : e.type === 'kickoff' && e.clock === 2700 ? '2H' : s.phase
       return { ...s, recent, feed, phase, events: { ...s.events, [e.id]: e } }
     }
-    case 'snapshot':
-      return { ...s, snapshot: env.data }
+    case 'snapshot': {
+      const snap = env.data
+      const last = s.history.at(-1)
+      if (last && snap.clock - last.clock < 30) return { ...s, snapshot: snap }
+      const top = (side: 'home' | 'away') => Math.max(0, ...snap.players.filter((p) => p.side === side).map((p) => p.topSpeedKmh))
+      const point: MetricPoint = {
+        clock: snap.clock,
+        home: { xg: snap.home.xg, passing: snap.home.avgPassDifficulty * 100, pressing: snap.live.homePpda10, speed: top('home') },
+        away: { xg: snap.away.xg, passing: snap.away.avgPassDifficulty * 100, pressing: snap.live.awayPpda10, speed: top('away') },
+      }
+      return { ...s, snapshot: snap, history: [...s.history, point] }
+    }
     case 'moment':
       return { ...s, moments: { ...s.moments, [env.data.id]: env.data } }
     case 'card':

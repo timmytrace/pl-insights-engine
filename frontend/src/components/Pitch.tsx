@@ -111,6 +111,7 @@ function PlayerDot({ p, shirt, colour, onBall, focus }: DotProps) {
       {focus && <circle r={2.6} className="focus-ring" />}
       <circle r={1.55} fill={shirt?.gk ? '#f1c40f' : colour} className="player-disc" />
       <text y={0.55} className="player-number">{shirt?.number ?? ''}</text>
+      {(onBall || focus) && shirt && <text y={-2.4} className="player-name">{shirt.name.split(' ').at(-1)}</text>}
     </g>
   )
 }

@@ -42,6 +42,7 @@ public static class Thresholds
     public const double Chaos = 65;
     public const double Control = 72;
     public static readonly int[] PassMilestones = [50, 75, 100];
+    public static readonly int[] DistanceMilestonesKm = [5, 10];
 }
 
 /// <summary>
@@ -57,6 +58,7 @@ public sealed class MomentDetector(MatchState state)
     private readonly Dictionary<(MomentKind, Side), double> _lastFired = [];
     private double _lastLiveCheck;
     private double _momentumExtreme;   // most extreme momentum since the last swing
+    private readonly HashSet<(Side Team, int Km)> _distanceMarks = [];
     private int _count;
 
     public IReadOnlyList<Moment> Observe(EventMetrics m)
@@ -123,7 +125,15 @@ public sealed class MomentDetector(MatchState state)
 
     private IEnumerable<Moment> LiveMoments(MatchEvent e)
     {
-        var live = state.Snapshot().Live;
+        var snapshot = state.Snapshot();
+        var live = snapshot.Live;
+
+        // Distance indicators: a tag for the first player on each team to pass each threshold.
+        foreach (var p in snapshot.Players.Where(p => p.OnPitch).OrderByDescending(p => p.DistanceKm))
+            foreach (var km in Thresholds.DistanceMilestonesKm.Where(km => p.DistanceKm >= km && _distanceMarks.Add((p.Side, km))))
+                yield return new Moment($"{state.Info.MatchId}-M{++_count:D3}", MomentKind.Milestone, e.T, e.Clock, e.Minute,
+                    p.Side, p.Id, p.Name, 0.3, _chain.Select(c => c.Id).ToList(),
+                    Facts(("milestone", "distance"), ("thresholdKm", km), ("distanceKm", p.DistanceKm), ("firstOnTeam", true)));
 
         foreach (var side in new[] { Side.Home, Side.Away })
         {

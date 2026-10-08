@@ -177,7 +177,8 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 /* Fan view: one pane per viewer */
 .fan-view { margin-bottom: 14px; }
 .fan-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-.fan-grid-4 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.fan-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .fan-grid-4 { grid-template-columns: 1fr; } }
 .fan-pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; display: grid; gap: 8px; align-content: start; min-width: 0; }
 .fan-head { display: flex; align-items: center; gap: 10px; }
 .fan-head .avatar { border-radius: 50%; box-shadow: 0 0 0 2px #ff3b47; background: var(--panel-2); }
@@ -249,3 +250,19 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .sb-progress { grid-column: 1 / -1; position: relative; height: 4px; background: var(--panel-2); border-radius: 99px; overflow: hidden; }
 .sb-progress > div { height: 100%; background: linear-gradient(90deg, var(--accent), #ffd166); transition: width 0.6s linear; }
 .sb-half-mark { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--muted); opacity: 0.6; }
+
+/* Name tags on the pitch */
+.player-name { font-size: 1.7px; font-weight: 700; text-anchor: middle; fill: #fff; paint-order: stroke; stroke: rgba(0, 0, 0, 0.75); stroke-width: 0.35px; pointer-events: none; }
+
+/* Metric focus */
+.metric-panel { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 6px; }
+.metric-head { display: grid; }
+.metric-head strong { font-size: 0.85rem; }
+.metric-head span { font-size: 0.7rem; }
+.metric-values { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.metric-values div { display: grid; background: var(--panel); border-radius: 6px; padding: 4px 8px; }
+.metric-values b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.metric-values span { font-size: 0.68rem; color: var(--muted); }
+.metric-chart { width: 100%; height: 56px; }
+.metric-chart path { fill: none; stroke-width: 0.9; vector-effect: non-scaling-stroke; }
+.metric-half { stroke: var(--line); stroke-width: 0.4; stroke-dasharray: 1 1; }

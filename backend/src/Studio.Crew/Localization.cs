@@ -64,6 +64,7 @@ public static class TemplateLocalizer
         Persona.Casual => "casual",
         Persona.ClubFan => "club_fan",
         Persona.PlayerFocus => "player_focus",
+        Persona.MetricFocus => "metric_focus",
         _ => "neutral",
     };
 

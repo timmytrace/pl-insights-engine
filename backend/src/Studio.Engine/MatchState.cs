@@ -274,7 +274,7 @@ public sealed class MatchState
     {
         var minutes = Math.Max(0, ((p.OffClock ?? Clock) - p.OnClock) / 60);
         // Baseline running from minutes played, plus the sprints tracking picked up.
-        var metresPerMinute = p.Player.Position == "GK" ? 45 : 108;
+        var metresPerMinute = WorkRate(p.Player.Position);
         var distanceKm = (minutes * metresPerMinute + p.SprintDistance) / 1000;
         return new PlayerSnapshot(
             p.Player.Id, p.Player.Name, p.Player.Number, p.Player.Position, p.Side, p.OffClock is null,
@@ -284,6 +284,17 @@ public sealed class MatchState
             p.KeyPasses, p.Shots, p.Goals, Math.Round(p.Xg, 2), p.Tackles, p.Interceptions,
             p.Pressures, p.Sprints, p.TopSpeedKmh, Math.Round(distanceKm, 2), p.MaxShotSpeedKmh);
     }
+
+    /// <summary>Typical metres per minute by role: midfielders cover the most ground, centre-backs the least.</summary>
+    private static int WorkRate(string position) => position switch
+    {
+        "GK" => 45,
+        "RCB" or "LCB" or "CB" => 98,
+        "ST" => 104,
+        "RB" or "LB" => 110,
+        "RW" or "LW" or "W" => 112,
+        _ => 120,   // CDM, RCM, LCM, CM
+    };
 
     /// <summary>
     /// Passes allowed per defensive action: opponent passes in their own 60% of the pitch

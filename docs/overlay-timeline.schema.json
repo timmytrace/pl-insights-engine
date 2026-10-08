@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/timmytrace/pl-insights-engine/blob/main/docs/overlay-timeline.schema.json",
+  "title": "Virtual Studio Crew overlay timeline",
+  "description": "A match's on-screen graphics as a timed, layered timeline for a broadcast graphics engine. Times are match-clock seconds (the second half starts at 2700). Live upgrades from the agent crew arrive on the replay WebSocket as cards whose `replaces` field names the item they supersede.",
+  "type": "object",
+  "required": ["schema", "version", "matchId", "timebase", "slots", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "type": "string", "format": "uri" },
+    "version": { "const": "1.0" },
+    "matchId": { "type": "string" },
+    "timebase": { "const": "match_clock_seconds" },
+    "viewer": {
+      "type": ["string", "null"],
+      "description": "The viewer profile the timeline was personalised for (e.g. casual.es), or null for the studio feed."
+    },
+    "slots": {
+      "type": "array",
+      "description": "Screen positions used by this timeline. A graphics engine maps each to a template.",
+      "items": { "enum": ["banner", "lower_third", "corner", "player_tag"] }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "momentId", "kind", "slot", "priority", "in", "out", "inLabel", "team", "layers", "language", "persona", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "momentId": { "type": "string" },
+          "kind": {
+            "enum": ["goal", "big_chance", "shot_speed", "sprint_speed", "elite_pass", "milestone", "press_surge", "momentum_swing", "chaos_spell", "control_spell"]
+          },
+          "slot": { "enum": ["banner", "lower_third", "corner", "player_tag"] },
+          "priority": {
+            "type": "integer", "minimum": 1, "maximum": 5,
+            "description": "1 must air; 5 is filler. When two items want one slot, the lower number wins."
+          },
+          "in": { "type": "number", "minimum": 0, "description": "Match clock (s) when the graphic goes on." },
+          "out": { "type": "number", "minimum": 0, "description": "Match clock (s) when it comes off." },
+          "inLabel": { "type": "string", "description": "Broadcast minute, e.g. 22'." },
+          "team": { "enum": ["home", "away"] },
+          "playerId": { "type": ["string", "null"] },
+          "layers": {
+            "type": "object",
+            "required": ["headline", "body", "stats"],
+            "additionalProperties": false,
+            "properties": {
+              "headline": { "type": "string" },
+              "body": { "type": "string" },
+              "stats": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["label", "value"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "label": { "type": "string" },
+                    "value": { "type": "string" },
+                    "unit": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            }
+          },
+          "language": { "enum": ["en", "es", "fr"] },
+          "persona": { "type": "string" },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Event ids behind the graphic, for audit and the 'Why did that happen?' replay."
+          }
+        }
+      }
+    }
+  }
+}

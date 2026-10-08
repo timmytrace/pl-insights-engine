@@ -10,6 +10,7 @@ public class ViewerTests
     [InlineData("casual.es", Persona.Casual, "es")]
     [InlineData("club.fr.away", Persona.ClubFan, "fr")]
     [InlineData("player.en.H10", Persona.PlayerFocus, "en")]
+    [InlineData("metric.es.pressing", Persona.MetricFocus, "es")]
     public void Profiles_parse_from_their_short_form(string spec, Persona persona, string lang)
     {
         var v = ViewerProfile.Parse(spec)!;
@@ -21,6 +22,7 @@ public class ViewerTests
     [InlineData("analyst.de")]       // unsupported language
     [InlineData("club.en")]          // club fan without a club
     [InlineData("pundit.en")]
+    [InlineData("metric.en.vibes")]  // not a metric we track
     public void Bad_profiles_are_ignored(string spec) => Assert.Null(ViewerProfile.Parse(spec));
 
     [Fact]
@@ -39,6 +41,11 @@ public class ViewerTests
         Assert.True(Relevance.Shows(homeFan, M(MomentKind.Goal, Side.Away)));             // bad news still airs
         Assert.True(Relevance.Shows(focus, M(MomentKind.SprintSpeed, Side.Home, "H10")));
         Assert.False(Relevance.Shows(focus, M(MomentKind.SprintSpeed, Side.Home, "H07")));
+
+        var pressing = ViewerProfile.Parse("metric.en.pressing")!;
+        Assert.True(Relevance.Shows(pressing, M(MomentKind.PressSurge, Side.Away)));
+        Assert.True(Relevance.Shows(pressing, M(MomentKind.Goal, Side.Away)));
+        Assert.False(Relevance.Shows(pressing, M(MomentKind.SprintSpeed, Side.Home)));
     }
 }
 

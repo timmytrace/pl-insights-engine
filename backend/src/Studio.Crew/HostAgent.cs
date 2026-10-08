@@ -44,6 +44,7 @@ public sealed class HostAgent(IChatClient chat)
             club = viewer.Club is { } c ? info.Team(c).Name : null,
             storyIsAboutTheirClub = viewer.Club is { } side ? side == b.Moment.Team : (bool?)null,
             player = viewer.PlayerId is { } pid ? TryPlayer(info, pid) : null,
+            metric = viewer.Metric,
         });
 
         var fallback = TemplateLocalizer.ForViewer(template, viewer, info);

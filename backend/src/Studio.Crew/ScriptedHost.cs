@@ -85,7 +85,7 @@ internal static class ScriptedHost
         if (!Book.TryGetValue((kind, lang), out var lines))
             return JsonSerializer.Serialize(new HostDto(Fill("{team}"), ""));
 
-        var body = persona == "analyst" ? lines.Analyst : lines.Casual;
+        var body = persona is "analyst" or "metric_focus" ? lines.Analyst : lines.Casual;
         var (ours, theirs, focus) = Framing[lang];
         if (persona == "club_fan" && v.TryGetProperty("storyIsAboutTheirClub", out var mine) && mine.ValueKind != JsonValueKind.Null)
             body = (mine.GetBoolean() ? ours : theirs) + " " + body;

@@ -105,7 +105,8 @@ profile: a persona, a language (English, Spanish or French), and optionally a cl
 | Analyst | Every story | Numbers and named metrics: xG, PPDA, control index |
 | Casual fan | Goals, big chances, momentum swings, speed tags | Plain words, at most one number |
 | Club fan | Their club's stories, plus the goals and chances against them | "We" and "us", honest when it goes wrong |
-| Player focus | Their player's moments and every goal, with a live stat strip | Centred on the player, using their numbers |
+| Player focus | Their player's moments and every goal, with a live stat strip and their name on the pitch | Centred on the player, using their numbers |
+| Metric focus | One metric all match (xG, pass difficulty, pressing or top speed), with a live chart for both teams | The story told through that number, explained in plain words |
 
 Personalisation is also about what a viewer does *not* see: `Relevance` is plain code, so every
 choice is predictable. Translated template graphics air instantly, so nobody waits in English
@@ -114,6 +115,17 @@ for the crew.
 **Why did that happen?** Every story has a replay. It steps through the events that led to the
 moment on a pitch, captioning each one from the event data, then shows the verified story. Each
 step and each word traces back to evidence.
+
+**Live commentary.** The Host calls the match as it happens, in each viewer's language:
+"Castell finds Yilmaz in the final third… Yilmaz tests the keeper… good save!" It's written from
+the event data, not by a model, so it's instant and every number is exact. Excitement rises near
+goal, routine play is called sparingly, and the big moments (kick-offs, shots, goals, half-time,
+full-time) can be voiced by Azure AI Speech. The server only voices lines it wrote itself.
+
+**Condensed match.** The default pace plays a full match in about 4½ minutes, like a
+broadcaster's condensed replay: quiet build-up races by, play slows for shots and goals so the
+commentary lands, and holds while the crew writes a story so it still arrives fresh. The
+scoreboard shows the half and a progress bar, with a break at half-time.
 
 **Full-time recap.** At the final whistle the crew talks the viewer through the match in their
 language: The Host opens, The Gaffer tells the tactical story through the key moments, Stats
@@ -138,7 +150,7 @@ functions to decide outcomes, so a pass rated difficult really was less likely t
 | Pass difficulty (0–1) | 0.05 + 0.40·length + 0.20·forward progress + 0.20·target zone + 0.15·under pressure |
 | xG | Logistic on goal-mouth angle and distance, minus penalties for pressure and headers. About 0.25 from the penalty spot |
 | Ball / shot speed | km/h, supplied per event as a tracking system would |
-| Player speed and sprint distance | Sprint events; a speed tag fires at 32 km/h or more |
+| Player speed and distance | Sprint events; a speed tag fires at 32 km/h or more, and a distance tag goes to the first player on each team to reach 5 km and 10 km |
 | PPDA | Opponent passes in their own 60% ÷ our tackles, interceptions, fouls and recoveries there. Lower = more intense press |
 | Momentum (−100…+100) | Last 5 min: 40% xG share, 30% final-third entries, 30% possession |
 | Control (0–100) | Last 5 min: possession share, pass accuracy, passes per possession |
@@ -215,6 +227,22 @@ To watch the live crew in the terminal, with timings:
 cd backend && dotnet run --project src/Studio.Cli -- crew --seed 7 --azure https://<your-resource>.openai.azure.com/ --limit 5
 ```
 
+## For graphics partners
+
+`GET /api/matches/{seed}/overlays?viewer=casual.es` returns the match's graphics as a timeline a
+broadcast graphics engine can load directly: each item has its in and out times on the match
+clock, a screen slot, a priority for resolving clashes, named layers (headline, body, stats) and
+the event ids behind it. The format is versioned and described by
+[`docs/overlay-timeline.schema.json`](docs/overlay-timeline.schema.json). Live upgrades from the
+crew arrive on the replay WebSocket as cards whose `replaces` field names the item they supersede.
+
+## Protecting a public demo
+
+A `UsageGuard` keeps the hosted demo from spending the Azure budget: at most 3 live-crew replays
+at once, and hourly caps on new recaps and voiced commentary lines (all configurable under
+`Usage`). Over a limit the app degrades gracefully, to template graphics or captions without
+voice, and tells the viewer. When a viewer closes the tab, the replay and the crew stop at once.
+
 ## Deploy to Azure
 
 One container serves the overlay, the API and the replay WebSocket on Azure Container Apps,
@@ -245,11 +273,23 @@ az containerapp update -n studio-crew -g rg-studio-crew --set-env-vars Crew__Mod
 | `GET /api/matches/{seed}` | Match metadata and squads |
 | `GET /api/matches/{seed}/events` | Every event |
 | `GET /api/matches/{seed}/summary` | Full-time stats, all moments and all cards |
+| `GET /api/matches/{seed}/overlays?viewer=casual.es` | The overlay timeline for graphics engines (see above) |
+| `GET /api/matches/{seed}/commentary?lang=fr` | Every live commentary line for the match |
+| `GET /api/matches/{seed}/commentary/{seq}/audio?lang=fr` | A voiced big-moment line (MP3) |
 | `GET /api/matches/{seed}/recap?lang=es` | The full-time recap script, checked by Ref, and whether audio is available |
 | `GET /api/matches/{seed}/recap/audio?lang=es` | The recap read by the crew's Azure neural voices (MP3) |
-| `WS /ws/replay?seed=7&speed=20` | Live stream of `info`, `event`, `snapshot`, `moment`, `card`, `crew` and `end` envelopes. Add `crew=off` for template cards only, and `viewers=analyst.en,casual.es,club.fr.home,player.en.H10` for personalised versions |
+| `WS /ws/replay?seed=7&mode=condensed` | Live stream of `info`, `notice`, `event`, `commentary`, `snapshot`, `moment`, `card`, `crew` and `end` envelopes. Use `speed=10` instead of `mode` for a fixed pace, `crew=off` for template cards only, and `viewers=analyst.en,casual.es,club.fr.home,player.en.H10,metric.en.pressing` for personalised versions |
 
 JSON is camelCase with snake_case enum values.
+
+## What we left out
+
+**Auto-eventing from video** (running a model over a video feed to tag passes and speeds) is
+listed in the brief as something to consider. We chose not to build it: the brief's data is
+synthetic events, a credible vision model is a project in itself, and our time went into the
+explanation, verification and personalisation layers. The tracking frames the simulator emits
+with every on-ball event are the shape such a model would produce, so it would slot in upstream
+of `MatchState` without changing anything downstream.
 
 ## Repository layout
 
