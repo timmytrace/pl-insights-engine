@@ -54,7 +54,7 @@ internal static class ScriptedHost
     {
         var viewer = Section(prompt, "viewer");
         using var factsDoc = JsonDocument.Parse(Section(prompt, "facts"));
-        var facts = factsDoc.RootElement.GetProperty("facts");
+        var facts = FactSheet.ReadPromptFacts(factsDoc.RootElement);
         var kind = factsDoc.RootElement.GetProperty("moment").GetProperty("kind").GetString()!;
         using var viewerDoc = JsonDocument.Parse(viewer);
         var v = viewerDoc.RootElement;
@@ -64,17 +64,17 @@ internal static class ScriptedHost
         string Fill(string template)
         {
             var text = template;
-            foreach (var f in facts.EnumerateObject())
+            foreach (var (name, element) in facts)
             {
-                var value = f.Value.ValueKind == JsonValueKind.Number
-                    ? TemplateLocalizer.Format(f.Value.GetDouble(), lang)
-                    : f.Value.ToString();
-                text = text.Replace("{" + f.Name + "}", value);
+                var value = element.ValueKind == JsonValueKind.Number
+                    ? TemplateLocalizer.Format(element.GetDouble(), lang)
+                    : element.ToString();
+                text = text.Replace("{" + name + "}", value);
             }
             var words = Words[lang];
-            var xg = facts.TryGetProperty("xg", out var x) ? x.GetDouble() : 0;
-            var difficulty = facts.TryGetProperty("difficulty", out var d) ? d.GetDouble() : 0;
-            var outcome = facts.TryGetProperty("outcome", out var o) ? o.GetString() ?? "" : "";
+            var xg = facts.TryGetValue("xg", out var x) ? x.GetDouble() : 0;
+            var difficulty = facts.TryGetValue("difficulty", out var d) ? d.GetDouble() : 0;
+            var outcome = facts.TryGetValue("outcome", out var o) ? o.GetString() ?? "" : "";
             return text
                 .Replace("{player}", Str(facts, "player_name", Str(facts, "team", "")))
                 .Replace("{chance}", xg >= 0.3 ? words["golden"] : words["tough"])
@@ -89,7 +89,7 @@ internal static class ScriptedHost
         var (ours, theirs, focus) = Framing[lang];
         if (persona == "club_fan" && v.TryGetProperty("storyIsAboutTheirClub", out var mine) && mine.ValueKind != JsonValueKind.Null)
             body = (mine.GetBoolean() ? ours : theirs) + " " + body;
-        if (persona == "player_focus" && facts.TryGetProperty("focus_name", out _))
+        if (persona == "player_focus" && facts.ContainsKey("focus_name"))
             body += " " + focus;
 
         return JsonSerializer.Serialize(new HostDto(Fill(lines.Headline), Fill(body)));
@@ -102,6 +102,6 @@ internal static class ScriptedHost
         return prompt[start..end];
     }
 
-    private static string Str(JsonElement facts, string key, string fallback) =>
-        facts.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : fallback;
+    private static string Str(Dictionary<string, JsonElement> facts, string key, string fallback) =>
+        facts.TryGetValue(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : fallback;
 }

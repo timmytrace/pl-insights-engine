@@ -45,6 +45,9 @@ public static partial class RefChecker
         ],
     };
 
+    /// <summary>Before this minute, running match totals (possession, pass accuracy) can't be quoted.</summary>
+    public const int EarlyMinutes = 15;
+
     // Numbers that are part of the language of the game rather than claims (scales, the 90 minutes).
     private static readonly HashSet<double> Neutral = [100, 90, 45];
 
@@ -55,14 +58,29 @@ public static partial class RefChecker
         {
             if (claim.Facts.Count == 0)
                 reasons.Add($"\"{claim.Text}\" doesn't cite any facts.");
-            foreach (var key in claim.Facts.Where(k => !sheet.Has(k)))
+            foreach (var key in claim.Facts.Where(k => !sheet.Has(Key(k))))
                 reasons.Add($"\"{claim.Text}\" cites '{key}', which isn't on the fact sheet.");
         }
+
+        // Match-total percentages after a few minutes are noise, not insight.
+        if (sheet.Minute < EarlyMinutes)
+            foreach (var key in pitch.Claims.SelectMany(c => c.Facts).Select(Key).Distinct())
+                if (sheet.Get(key) is { MatchTotal: true } f)
+                    reasons.Add($"It's minute {sheet.Minute}: {f.Label.ToLowerInvariant()} for the match doesn't mean anything yet.");
+
+        // Internal fact names are for the crew, never for the screen.
+        var onScreen = $"{pitch.Headline} {pitch.Body}";
+        foreach (var f in sheet.Facts.Where(f => f.Key.Contains('_') || f.Key.Any(char.IsUpper)))
+            if (Regex.IsMatch(onScreen, $@"\b{Regex.Escape(f.Key)}\b"))
+                reasons.Add($"'{f.Key}' is an internal fact name and can't appear on screen.");
 
         var text = string.Join(" ", new[] { pitch.Headline, pitch.Body }.Concat(pitch.Claims.Select(c => c.Text)));
         var numbers = CheckText(text, sheet, "en", reasons);
         return new Verdict(reasons.Count == 0, reasons.Distinct().ToList(), pitch.Claims.Count, numbers);
     }
+
+    /// <summary>Models sometimes cite a fact with its group in front ("about_this_moment.xg"); the key is the last part.</summary>
+    internal static string Key(string cited) => cited.Split('.').Last().Trim();
 
     /// <summary>Check a finished piece of copy in any supported language. Returns how many numbers were checked.</summary>
     public static int CheckText(string text, FactSheet sheet, string language, List<string> reasons)

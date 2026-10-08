@@ -30,13 +30,26 @@ public sealed class StudioCrew
     public StudioCrew(IChatClient chat, CrewOptions options)
     {
         _options = options;
-        _gaffer = chat.AsAIAgent(CrewPrompts.Gaffer, "The Gaffer", "Tactician: pitches why a moment matters");
-        _ref = chat.AsAIAgent(CrewPrompts.Ref, "Ref", "Fact-checker: approves or rejects pitches");
+        _gaffer = Agent(chat, CrewPrompts.Gaffer, "The Gaffer", "Tactician: pitches why a moment matters");
+        _ref = Agent(chat, CrewPrompts.Ref, "Ref", "Fact-checker: approves or rejects pitches");
         _host = new HostAgent(chat);
         Gallery = new GalleryProducer(options);
     }
 
     public GalleryProducer Gallery { get; }
+
+    /// <summary>
+    /// An agent that can serve several moments at once: the crew works on up to
+    /// <see cref="CrewOptions.MaxConcurrentMoments"/> in parallel, and The Host writes every viewer's version together.
+    /// </summary>
+    internal static AIAgent Agent(IChatClient chat, string instructions, string name, string description) =>
+        new ChatClientAgent(chat, new ChatClientAgentOptions
+        {
+            Name = name,
+            Description = description,
+            ChatOptions = new ChatOptions { Instructions = instructions },
+            AllowConcurrentInvocation = true,
+        });
 
     public Briefing Brief(Moment m, MatchState state) => _stats.Brief(m, state);
 
@@ -48,8 +61,13 @@ public sealed class StudioCrew
     {
         var m = b.Moment;
         var sheet = b.Sheet;
-        void Say(CrewRole from, CrewMessageKind kind, string text, Dictionary<string, object>? data = null) =>
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        void Say(CrewRole from, CrewMessageKind kind, string text, Dictionary<string, object>? data = null)
+        {
+            data ??= [];
+            data["elapsedMs"] = clock.ElapsedMilliseconds;   // time since the crew picked the moment up
             emit(new CrewMessage(m.Id, from, kind, text, nowMatchT(), data));
+        }
 
         try
         {
@@ -64,6 +82,8 @@ public sealed class StudioCrew
             {
                 Tools = tools,
                 ResponseFormat = ChatResponseFormat.Json,
+                MaxOutputTokens = 400,
+                Temperature = 0.4f,
             });
 
             var request = CrewPrompts.PitchRequest(sheet);
@@ -164,7 +184,7 @@ public sealed class StudioCrew
 
     private async Task<ReviewDto?> Review(FactSheet sheet, StoryPitch pitch, CancellationToken ct)
     {
-        var options = new ChatClientAgentRunOptions(new ChatOptions { ResponseFormat = ChatResponseFormat.Json });
+        var options = new ChatClientAgentRunOptions(new ChatOptions { ResponseFormat = ChatResponseFormat.Json, MaxOutputTokens = 250, Temperature = 0f });
         var response = await _ref.RunAsync(CrewPrompts.ReviewRequest(sheet, pitch), null, options, ct);
         return Parse<ReviewDto>(response.Text);
     }

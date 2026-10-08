@@ -55,6 +55,32 @@ public class RefCheckerTests
     }
 
     [Fact]
+    public void Citations_may_carry_their_group_name()
+    {
+        Assert.True(RefChecker.Check(P("A 0.91 xG chance.", new Claim("c", ["about_this_moment.xg"])), Sheet()).Approved);
+    }
+
+    [Fact]
+    public void Internal_fact_names_never_reach_the_screen()
+    {
+        var v = RefChecker.Check(P("Seven shots (team_shots).", new Claim("c", ["team_shots"])), Sheet());
+        Assert.False(v.Approved);
+        Assert.Contains(v.Reasons, r => r.Contains("internal fact name"));
+    }
+
+    [Fact]
+    public void Match_totals_are_too_early_to_quote_in_the_first_minutes()
+    {
+        var early = new FactSheet("M", "ElitePass", 2, 100);
+        early.Add("team_possession", "Possession", 89.5, "%", matchTotal: true);
+        Assert.False(RefChecker.Check(P("89.5% possession.", new Claim("c", ["team_possession"])), early).Approved);
+
+        var later = new FactSheet("M", "ElitePass", 30, 1800);
+        later.Add("team_possession", "Possession", 89.5, "%", matchTotal: true);
+        Assert.True(RefChecker.Check(P("89.5% possession.", new Claim("c", ["team_possession"])), later).Approved);
+    }
+
+    [Fact]
     public void Claims_must_cite_real_facts()
     {
         Assert.False(RefChecker.Check(P("Fine.", new Claim("c", [])), Sheet()).Approved);

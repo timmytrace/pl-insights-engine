@@ -42,19 +42,32 @@ switch (command)
     case "crew":
         var crewPipeline = new MatchPipeline(match.Info);
         var viewers = ViewerProfile.ParseList(Arg("--viewers") ?? "analyst.en,casual.es,club.fr.home,player.en.H10");
-        var crew = new StudioCrew(new ScriptedChatClient(0), new CrewOptions { MaxConcurrentMoments = 100 });
+        // --azure <endpoint> --deployment <name> runs against Azure OpenAI with your az login; --limit N stops after N stories.
+        var crewOptions = new CrewOptions
+        {
+            MaxConcurrentMoments = 100,
+            MockLatencyMs = 0,
+            Mode = Arg("--azure") is null ? "mock" : "azure",
+            Endpoint = Arg("--azure"),
+            Deployment = Arg("--deployment") ?? "gpt-4.1-mini",
+        };
+        var crew = new StudioCrew(ModelFactory.Create(crewOptions), crewOptions);
+        var limit = int.Parse(Arg("--limit") ?? "1000");
+        var stories = 0;
         foreach (var e in match.Events)
         {
+            if (stories >= limit) break;
             var step = crewPipeline.Process(e);
             foreach (var m in step.Moments)
             {
                 var route = crew.Gallery.Route(m);
                 if (route.Route != CrewRoute.Crew) continue;
+                if (++stories > limit) break;
                 Console.WriteLine();
                 Console.WriteLine($"-- {m.Minute}' {m.Kind} --");
                 var template = step.Cards.First(c => c.MomentId == m.Id);
                 var result = await crew.RunAsync(crew.Brief(m, crewPipeline.State), template, viewers, () => m.T,
-                    msg => Console.WriteLine($"  {msg.From,-8} {msg.Text}"), CancellationToken.None);
+                    msg => Console.WriteLine($"  {msg.Data?["elapsedMs"],6}ms {msg.From,-8} {msg.Text}"), CancellationToken.None);
                 foreach (var v in result.Versions)
                     Console.WriteLine($"    [{v.Viewer.Id}] {v.Card.Headline} | {v.Card.Body}");
             }

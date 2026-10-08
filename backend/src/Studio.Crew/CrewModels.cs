@@ -38,6 +38,12 @@ public sealed record Fact(string Key, string Label, object Value, string? Unit =
 
     /// <summary>Counts must be quoted exactly; measurements may be rounded.</summary>
     public bool IsCount { get; init; }
+
+    /// <summary>Facts about the moment itself, which the story should lead with; the rest is context.</summary>
+    public bool AboutMoment { get; init; }
+
+    /// <summary>Running match totals (possession, pass accuracy...), which mean little in the first minutes.</summary>
+    public bool MatchTotal { get; init; }
 }
 
 /// <summary>Everything the crew is allowed to say about a moment, captured when it happened.</summary>
@@ -56,10 +62,16 @@ public sealed class FactSheet(string momentId, string kind, int minute, double m
         get { lock (_gate) return _facts.Values.ToList(); }
     }
 
-    public void Add(string key, string label, object value, string? unit = null, bool isCount = false)
+    public void Add(string key, string label, object value, string? unit = null, bool isCount = false, bool aboutMoment = false,
+        bool matchTotal = false)
     {
         if (value is double d) value = Math.Round(d, 3);
-        lock (_gate) _facts[key] = new Fact(key, label, value, unit) { IsCount = isCount };
+        lock (_gate) _facts[key] = new Fact(key, label, value, unit) { IsCount = isCount, AboutMoment = aboutMoment, MatchTotal = matchTotal };
+    }
+
+    public Fact? Get(string key)
+    {
+        lock (_gate) return _facts.GetValueOrDefault(key);
     }
 
     public bool Has(string key)
@@ -67,13 +79,31 @@ public sealed class FactSheet(string momentId, string kind, int minute, double m
         lock (_gate) return _facts.ContainsKey(key);
     }
 
-    /// <summary>The sheet as the agents see it: a flat JSON object of key → value.</summary>
-    public string ToPromptJson() => JsonSerializer.Serialize(new
+    /// <summary>
+    /// The sheet as the agents see it. Facts about the moment come first and are kept apart from
+    /// match context, so the story leads with what just happened. Each entry is [value, label].
+    /// </summary>
+    public string ToPromptJson()
     {
-        moment = new { id = MomentId, kind = Kind, minute = Minute },
-        facts = Facts.ToDictionary(f => f.Key, f => f.Value),
-        labels = Facts.ToDictionary(f => f.Key, f => f.Unit is null ? f.Label : $"{f.Label} ({f.Unit})"),
-    });
+        object Entry(Fact f) => new[] { f.Value, f.Unit is null ? f.Label : $"{f.Label} ({f.Unit})" };
+        var facts = Facts;
+        return JsonSerializer.Serialize(new
+        {
+            moment = new { id = MomentId, kind = Kind, minute = Minute },
+            about_this_moment = facts.Where(f => f.AboutMoment).ToDictionary(f => f.Key, Entry),
+            context = facts.Where(f => !f.AboutMoment).ToDictionary(f => f.Key, Entry),
+        });
+    }
+
+    /// <summary>Read the sheet back out of a prompt (used by the offline model): key → value across both groups.</summary>
+    public static Dictionary<string, JsonElement> ReadPromptFacts(JsonElement root)
+    {
+        var all = new Dictionary<string, JsonElement>();
+        foreach (var group in new[] { "about_this_moment", "context" })
+            if (root.TryGetProperty(group, out var g))
+                foreach (var p in g.EnumerateObject()) all[p.Name] = p.Value[0];
+        return all;
+    }
 
     public static string Format(double v) =>
         Math.Abs(v - Math.Round(v)) < 1e-9 ? ((long)Math.Round(v)).ToString(CultureInfo.InvariantCulture)

@@ -49,15 +49,15 @@ public sealed class ScriptedChatClient(int latencyMs) : IChatClient
         var end = prompt.IndexOf("</facts>", StringComparison.Ordinal);
         using var doc = JsonDocument.Parse(prompt[start..end]);
         var moment = doc.RootElement.GetProperty("moment");
-        var facts = doc.RootElement.GetProperty("facts");
+        var facts = FactSheet.ReadPromptFacts(doc.RootElement);
         var id = moment.GetProperty("id").GetString()!;
         var kind = moment.GetProperty("kind").GetString()!;
         var revising = prompt.Contains(CrewPrompts.RevisionMarker, StringComparison.Ordinal);
 
-        string S(string key) => facts.TryGetProperty(key, out var v)
+        string S(string key) => facts.TryGetValue(key, out var v)
             ? v.ValueKind == JsonValueKind.Number ? FactSheet.Format(v.GetDouble()) : v.ToString()
             : "";
-        double N(string key) => facts.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetDouble() : 0;
+        double N(string key) => facts.TryGetValue(key, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetDouble() : 0;
         Claim C(string text, params string[] keys) => new(text, keys);
 
         var team = S("team");
@@ -106,7 +106,7 @@ public sealed class ScriptedChatClient(int latencyMs) : IChatClient
                 new List<Claim>
                 {
                     C($"Control index {S("control")} for {team}", "control"),
-                    C($"{S("team_possession")}% possession for the match", "team_possession"),
+                    C($"{S("tempoPassesPerMin")} passes a minute", "tempoPassesPerMin"),
                 }),
             "ElitePass" => ($"{player} picks the lock",
                 $"Difficulty {Math.Round(N("difficulty") * 100):0}/100 over {S("distanceM")} m. Passes like that are what break a block.",

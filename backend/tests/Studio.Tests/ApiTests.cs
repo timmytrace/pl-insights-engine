@@ -6,8 +6,15 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Studio.Tests;
 
-public class ApiTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class ApiTests(WebApplicationFactory<Program> baseFactory) : IClassFixture<WebApplicationFactory<Program>>
 {
+    // Tests always use the offline model, whatever the developer's user secrets say: no test spends Azure credits.
+    private readonly WebApplicationFactory<Program> factory = baseFactory.WithWebHostBuilder(b =>
+    {
+        b.UseSetting("Crew:Mode", "mock");
+        b.UseSetting("Crew:MockLatencyMs", "0");
+    });
+
     [Fact]
     public async Task Health_is_ok()
     {

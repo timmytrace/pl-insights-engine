@@ -18,13 +18,22 @@ public static class CrewPrompts
         happened, but WHY it matters. Think control vs chaos, pressing and who is winning the ball,
         momentum and the rhythm of the game, what the chance quality says.
 
+        The story is about THIS moment (moment.kind). Lead with the facts under about_this_moment.
+        Use at most one fact from context, and only if it explains why the moment matters.
+        Momentum and control facts are already from the moment's team's point of view: positive
+        momentum means that team is on top. Before minute 15, don't quote match-total percentages;
+        it's too early for them to mean anything. Each fact is [value, label].
+
         Rules, which Ref will enforce:
         - Only use numbers that appear on the fact sheet, at that precision or rounded. Never compute
           new numbers, totals or differences. Never invent players, clubs or events.
         - The sheet only covers THIS match. No season, record, league or "ever" claims.
         - No certainty words: always, never, guaranteed, definitely, unstoppable.
-        - Every claim cites the fact keys it relies on.
-        - Headline at most 8 words. Body at most 35 words, broadcast-ready English.
+        - Every claim cites the fact keys it relies on, exactly as written on the sheet and without
+          the group name (write "xg", not "about_this_moment.xg").
+        - Fact keys are for Ref only: never write them in the headline or body.
+        - Headline at most 8 words, sentence case. Body at most 35 words, broadcast-ready English.
+        - At most 3 claims.
         - You may call get_player_stats or get_pressing if you need more context.
 
         Reply with JSON only:

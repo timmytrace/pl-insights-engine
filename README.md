@@ -9,9 +9,9 @@ Built for the *Synthetic Match Insights Engine for Premier League Studio* hackat
 All clubs, players and match data are synthetic. No real match data is used.
 
 > **Status: phase 3 of 4 (fan experience).** The pipeline, the five-agent crew and personalised
-> fan views run end to end with an offline scripted model. The Azure OpenAI path is built and
-> switches on through configuration; it hasn't yet been run against a live deployment. See the
-> [roadmap](#roadmap).
+> fan views run end to end on Azure OpenAI (`gpt-4.1-mini` in Azure AI Foundry, keyless sign-in),
+> or offline with a scripted model. After warm-up a story takes about 6–10 seconds from moment
+> to verified card, with every viewer's version written in parallel. See the [roadmap](#roadmap).
 
 ## The crew
 
@@ -61,14 +61,16 @@ sequenceDiagram
     H->>H: Verified card replaces the template on air
 ```
 
-- **Stats** is code, not a model. It freezes a fact sheet the instant the moment happens and
-  exposes `get_player_stats` and `get_pressing` as tools. Anything a tool returns is written to
-  the sheet first, so it can be checked too.
+- **Stats** is code, not a model. It freezes a fact sheet the instant the moment happens, splits
+  it into facts about the moment and match context, and turns momentum round so positive always
+  means the moment's team is on top. It exposes `get_player_stats` and `get_pressing` as tools;
+  anything a tool returns is written to the sheet first, so it can be checked too.
 - **The Gaffer** is a Microsoft Agent Framework `ChatClientAgent` with its own session per
   moment, so revisions keep the conversation.
 - **Ref** runs a rulebook first: every number must be on the sheet at the precision quoted,
-  counts must be exact, every claim must cite real fact keys, and no season, record or certainty
-  claims. Only then does a second agent judge whether the claims follow from the facts.
+  counts must be exact, every claim must cite real fact keys, no internal fact names on screen,
+  no running match totals in the first 15 minutes, and no season, record or certainty claims.
+  Only then does a second agent judge whether the claims follow from the facts.
 - **Gallery** routes moments (speed tags go straight to air), caps how many the crew works on
   at once, and drops verified stories that arrive after play has moved on.
 - **The Host** writes each verified story again for every viewer: their persona, their club or
@@ -194,7 +196,14 @@ cd backend/src/Studio.Api && dotnet user-secrets set "Crew:Deployment" "gpt-4.1-
 ```
 
 Leave `Crew:ApiKey` unset to sign in with Microsoft Entra ID (`az login` locally, managed
-identity in Azure), or set it to use a key. `GET /api/health` reports which model is active.
+identity in Azure; your account needs the **Cognitive Services OpenAI User** role), or set it to
+use a key. `GET /api/health` reports which model is active. Tests always use the offline model.
+
+To watch the live crew in the terminal, with timings:
+
+```bash
+cd backend && dotnet run --project src/Studio.Cli -- crew --seed 7 --azure https://<your-resource>.openai.azure.com/ --limit 5
+```
 
 ## API
 
@@ -226,7 +235,7 @@ data/sample/          committed synthetic dataset
 | Dates (2026) | Phase |
 |---|---|
 | 7–10 Oct | **1. Foundations:** simulator, metrics, moments, replay API, overlay UI, CI ✅ |
-| 11–15 Oct | **2. Agent crew** on Microsoft Agent Framework: Stats, The Gaffer, Ref, Gallery, The Host, plus the Control Room ✅ (live Azure run pending) |
+| 11–15 Oct | **2. Agent crew** on Microsoft Agent Framework: Stats, The Gaffer, Ref, Gallery, The Host, plus the Control Room ✅ (live on Azure OpenAI) |
 | 16–19 Oct | **3. Fan experience:** persona panes side by side, "Why did that happen?", The Host in three languages ✅ |
 | 20–22 Oct | **4. Recap and deployment:** spoken bilingual recap (Azure AI Speech), Container Apps + Static Web Apps |
 | 23–26 Oct | Demo video, pitch, submission |

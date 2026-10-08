@@ -20,7 +20,7 @@ public sealed record HostVersion(ViewerProfile Viewer, InsightCard Card, bool Ve
 /// </summary>
 public sealed class HostAgent(IChatClient chat)
 {
-    private readonly AIAgent _agent = chat.AsAIAgent(CrewPrompts.Host, "The Host", "Presenter: personalises and localises verified stories");
+    private readonly AIAgent _agent = StudioCrew.Agent(chat, CrewPrompts.Host, "The Host", "Presenter: personalises and localises verified stories");
 
     /// <summary>The studio feed's version: the approved pitch as written, in English.</summary>
     public static InsightCard Studio(StoryPitch pitch, InsightCard template) => template with
@@ -47,7 +47,7 @@ public sealed class HostAgent(IChatClient chat)
         });
 
         var fallback = TemplateLocalizer.ForViewer(template, viewer, info);
-        var options = new ChatClientAgentRunOptions(new ChatOptions { ResponseFormat = ChatResponseFormat.Json });
+        var options = new ChatClientAgentRunOptions(new ChatOptions { ResponseFormat = ChatResponseFormat.Json, MaxOutputTokens = 250, Temperature = 0.5f });
         var response = await _agent.RunAsync(CrewPrompts.HostRequest(b.Sheet, pitch, viewerJson), null, options, ct);
         var dto = StudioCrew.Parse<HostDto>(response.Text);
         if (dto is null || string.IsNullOrWhiteSpace(dto.Headline))

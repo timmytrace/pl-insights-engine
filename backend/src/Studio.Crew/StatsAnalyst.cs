@@ -34,27 +34,37 @@ public sealed class StatsAnalyst
         sheet.Add("short_window", "Live window", ShortWindowMinutes, "min", isCount: true);
         sheet.Add("press_window", "Pressing window", PressWindowMinutes, "min", isCount: true);
 
+        // Momentum is measured home +100 to away -100. Flip it so positive always means the
+        // moment's team is on top; models misread the raw sign for away teams.
+        var sign = m.Team == Side.Home ? 1 : -1;
         foreach (var (key, value) in m.Facts)
         {
             if (value is string s && s.Length == 0) continue;
-            sheet.Add(key, Humanise(key), value is bool b ? (b ? "yes" : "no") : value);
+            if (key is "momentum" or "previousMomentum" && value is double mo)
+            {
+                sheet.Add(key, key == "momentum" ? $"Momentum for {team.Name} now (+ means they're on top)" : $"Momentum for {team.Name} before the swing",
+                    mo * sign, aboutMoment: true);
+                continue;
+            }
+            if (key is "homeScore" or "awayScore") continue;   // already on the sheet as home_score / away_score
+            sheet.Add(key, Humanise(key), value is bool b ? (b ? "yes" : "no") : value, aboutMoment: true);
         }
 
         AddTeam(sheet, "team", ts);
         AddTeam(sheet, "opp", os);
 
         var live = snap.Live;
-        sheet.Add("live_momentum", "Momentum now, home +100 to away −100", live.Momentum);
+        sheet.Add("team_momentum", $"Momentum for {team.Name}, last 5 min (+ means they're on top)", live.Momentum * sign);
         sheet.Add("team_control", "Team control index", m.Team == Side.Home ? live.HomeControl : live.AwayControl);
         sheet.Add("opp_control", "Opponent control index", m.Team == Side.Home ? live.AwayControl : live.HomeControl);
         sheet.Add("live_chaos", "Chaos index now", live.Chaos);
         sheet.Add("tempo", "Passes per minute, both teams", live.TempoPassesPerMin);
         sheet.Add("turnovers_per_min", "Turnovers per minute", live.TurnoversPerMin);
-        if ((m.Team == Side.Home ? live.HomePpda10 : live.AwayPpda10) is { } tp) sheet.Add("team_ppda10", "Team PPDA, last 10 min", tp);
-        if ((m.Team == Side.Home ? live.AwayPpda10 : live.HomePpda10) is { } op) sheet.Add("opp_ppda10", "Opponent PPDA, last 10 min", op);
+        if ((m.Team == Side.Home ? live.HomePpda10 : live.AwayPpda10) is { } tp) sheet.Add("team_ppda10", "Team PPDA, last 10 min (lower = more intense press)", tp);
+        if ((m.Team == Side.Home ? live.AwayPpda10 : live.HomePpda10) is { } op) sheet.Add("opp_ppda10", "Opponent PPDA, last 10 min (lower = more intense press)", op);
 
         if (m.PlayerId is { } pid && snap.Players.FirstOrDefault(p => p.Id == pid) is { } player)
-            AddPlayer(sheet, "player", player);
+            AddPlayer(sheet, "player", player, aboutMoment: true);
 
         return new Briefing(sheet, snap, info, m);
     }
@@ -95,13 +105,13 @@ public sealed class StatsAnalyst
 
     private static void AddTeam(FactSheet sheet, string prefix, TeamSnapshot t)
     {
-        sheet.Add($"{prefix}_possession", "Possession", t.PossessionPct, "%");
+        sheet.Add($"{prefix}_possession", "Possession", t.PossessionPct, "%", matchTotal: true);
         sheet.Add($"{prefix}_xg", "Expected goals", t.Xg);
         sheet.Add($"{prefix}_shots", "Shots", t.Shots, isCount: true);
         sheet.Add($"{prefix}_shots_on_target", "Shots on target", t.ShotsOnTarget, isCount: true);
         sheet.Add($"{prefix}_passes", "Passes", t.Passes, isCount: true);
-        sheet.Add($"{prefix}_pass_accuracy", "Pass accuracy", t.PassAccuracyPct, "%");
-        if (t.Ppda is { } ppda) sheet.Add($"{prefix}_ppda", "PPDA, full match", ppda);
+        sheet.Add($"{prefix}_pass_accuracy", "Pass accuracy", t.PassAccuracyPct, "%", matchTotal: true);
+        if (t.Ppda is { } ppda) sheet.Add($"{prefix}_ppda", "PPDA, full match (lower = more intense press)", ppda);
     }
 
     /// <summary>For player-focus viewers: the focused player's numbers, under the prefix "focus".</summary>
@@ -110,18 +120,18 @@ public sealed class StatsAnalyst
         if (b.Snapshot.Players.FirstOrDefault(p => p.Id == playerId) is { } p) AddPlayer(b.Sheet, "focus", p);
     }
 
-    private static void AddPlayer(FactSheet sheet, string prefix, PlayerSnapshot p)
+    private static void AddPlayer(FactSheet sheet, string prefix, PlayerSnapshot p, bool aboutMoment = false)
     {
-        sheet.Add($"{prefix}_name", "Player", p.Name);
-        sheet.Add($"{prefix}_position", "Position", p.Position);
-        sheet.Add($"{prefix}_goals", "Goals", p.Goals, isCount: true);
-        sheet.Add($"{prefix}_shots", "Shots", p.Shots, isCount: true);
-        sheet.Add($"{prefix}_xg", "Expected goals", p.Xg);
-        sheet.Add($"{prefix}_passes_completed", "Passes completed", p.PassesCompleted, isCount: true);
-        if (p.PassAccuracyPct is { } acc) sheet.Add($"{prefix}_pass_accuracy", "Pass accuracy", acc, "%");
-        sheet.Add($"{prefix}_key_passes", "Key passes", p.KeyPasses, isCount: true);
-        sheet.Add($"{prefix}_distance_km", "Distance covered", p.DistanceKm, "km");
-        if (p.TopSpeedKmh > 0) sheet.Add($"{prefix}_top_speed", "Top speed", p.TopSpeedKmh, "km/h");
+        sheet.Add($"{prefix}_name", "Player", p.Name, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_position", "Position", p.Position, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_goals", "Goals", p.Goals, isCount: true, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_shots", "Shots", p.Shots, isCount: true, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_xg", "Expected goals", p.Xg, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_passes_completed", "Passes completed", p.PassesCompleted, isCount: true, aboutMoment: aboutMoment);
+        if (p.PassAccuracyPct is { } acc) sheet.Add($"{prefix}_pass_accuracy", "Pass accuracy", acc, "%", aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_key_passes", "Key passes", p.KeyPasses, isCount: true, aboutMoment: aboutMoment);
+        sheet.Add($"{prefix}_distance_km", "Distance covered", p.DistanceKm, "km", aboutMoment: aboutMoment);
+        if (p.TopSpeedKmh > 0) sheet.Add($"{prefix}_top_speed", "Top speed", p.TopSpeedKmh, "km/h", aboutMoment: aboutMoment);
     }
 
     private static string Humanise(string key) => key switch
@@ -129,7 +139,7 @@ public sealed class StatsAnalyst
         "xg" => "Expected goals of this shot",
         "shotSpeedKmh" => "Shot speed",
         "distanceM" => "Distance",
-        "ppda10" => "PPDA, last 10 min",
+        "ppda10" => "PPDA, last 10 min (lower = more intense press)",
         "matchPpda" => "PPDA, full match",
         "previousMomentum" => "Momentum before the swing",
         _ => System.Text.RegularExpressions.Regex.Replace(key, "([a-z])([A-Z])", "$1 $2").ToLowerInvariant(),
