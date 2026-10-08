@@ -1,5 +1,8 @@
 using System.Text.Json;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using Studio.Engine;
 
@@ -10,12 +13,48 @@ public sealed record CrewResult(InsightCard? Card, Verdict? Verdict, int Rounds,
     public static CrewResult NotAired(Verdict? verdict, int rounds) => new(null, verdict, rounds, []);
 }
 
+/// <summary>Everything one moment's crew run carries from step to step through the workflow.</summary>
+public sealed class CrewRun(Briefing briefing, InsightCard template, IReadOnlyList<ViewerProfile> viewers,
+    Func<double> now, Action<CrewMessage> emit)
+{
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+
+    public Briefing Briefing { get; } = briefing;
+    public InsightCard Template { get; } = template;
+    public IReadOnlyList<ViewerProfile> Viewers { get; } = viewers;
+    public Func<double> Now { get; } = now;
+
+    public AgentSession? Session { get; set; }
+    public ChatClientAgentRunOptions? GafferOptions { get; set; }
+    public string Request { get; set; } = "";
+    public int Rounds { get; set; }
+    public StoryPitch? Pitch { get; set; }
+    public Verdict? Verdict { get; set; }
+    public bool Air { get; set; }
+    public InsightCard? Card { get; set; }
+    public IReadOnlyList<HostVersion> Versions { get; set; } = [];
+
+    [MemberNotNullWhen(true, nameof(Pitch), nameof(Verdict))]
+    public bool Approved => Verdict is { Approved: true } && Pitch is not null;
+
+    /// <summary>Ref sends it back while the pitch is rejected and revisions remain.</summary>
+    public bool CanRevise(int maxRevisions) => !Approved && Rounds <= maxRevisions;
+
+    /// <summary>Report a step to the Control Room, stamped with time since the crew picked the moment up.</summary>
+    public void Say(CrewRole from, CrewMessageKind kind, string text, Dictionary<string, object>? data = null)
+    {
+        data ??= [];
+        data["elapsedMs"] = _clock.ElapsedMilliseconds;
+        emit(new CrewMessage(Briefing.Moment.Id, from, kind, text, Now(), data));
+    }
+}
+
 /// <summary>
-/// Runs the Virtual Studio Crew on one moment:
+/// The Virtual Studio Crew, as a Microsoft Agent Framework workflow over one moment:
 /// Stats briefs → The Gaffer pitches → Ref checks (rulebook, then model) → back to The Gaffer
 /// if rejected → Gallery decides whether it still airs → The Host writes it for each viewer →
 /// Ref checks every version → on air.
-/// Every step is reported through <c>emit</c>, which is what the Control Room shows.
+/// Every step is reported through <see cref="CrewRun.Say"/>, which is what the Control Room shows.
 /// </summary>
 public sealed class StudioCrew
 {
@@ -56,95 +95,147 @@ public sealed class StudioCrew
     public Task<CrewResult> RunAsync(Briefing b, InsightCard template, Func<double> nowMatchT,
         Action<CrewMessage> emit, CancellationToken ct) => RunAsync(b, template, [], nowMatchT, emit, ct);
 
+    /// <summary>Runs the crew workflow on one moment and returns what went on air.</summary>
     public async Task<CrewResult> RunAsync(Briefing b, InsightCard template, IReadOnlyList<ViewerProfile> viewers,
         Func<double> nowMatchT, Action<CrewMessage> emit, CancellationToken ct)
     {
-        var m = b.Moment;
-        var sheet = b.Sheet;
-        var clock = System.Diagnostics.Stopwatch.StartNew();
-        void Say(CrewRole from, CrewMessageKind kind, string text, Dictionary<string, object>? data = null)
-        {
-            data ??= [];
-            data["elapsedMs"] = clock.ElapsedMilliseconds;   // time since the crew picked the moment up
-            emit(new CrewMessage(m.Id, from, kind, text, nowMatchT(), data));
-        }
-
+        var job = new CrewRun(b, template, viewers, nowMatchT, emit);
         try
         {
-            Say(CrewRole.Stats, CrewMessageKind.Brief,
-                $"{sheet.Facts.Count} facts on the sheet for the {Describe(m.Kind)} ({m.Minute}').",
-                new() { ["facts"] = sheet.Facts.Count });
-
-            var tools = _stats.Tools(sheet, b.Snapshot, b.Info,
-                what => Say(CrewRole.Stats, CrewMessageKind.ToolCall, $"The Gaffer asked for more: {what}."));
-            var session = await _gaffer.CreateSessionAsync(ct);
-            var runOptions = new ChatClientAgentRunOptions(new ChatOptions
+            await using var run = await InProcessExecution.RunAsync(BuildWorkflow(), job, null, ct);
+            foreach (var evt in run.OutgoingEvents)
             {
-                Tools = tools,
-                ResponseFormat = ChatResponseFormat.Json,
-                MaxOutputTokens = 400,
-                Temperature = 0.4f,
-            });
-
-            var request = CrewPrompts.PitchRequest(sheet);
-            StoryPitch? pitch = null;
-            Verdict? verdict = null;
-            var rounds = 0;
-            while (rounds <= _options.MaxRevisions)
-            {
-                rounds++;
-                var response = await _gaffer.RunAsync(request, session, runOptions, ct);
-                pitch = Parse<StoryPitch>(response.Text);
-                if (pitch is null)
+                switch (evt)
                 {
-                    verdict = new Verdict(false, ["The pitch wasn't valid JSON."], 0, 0);
-                    Say(CrewRole.Ref, CrewMessageKind.Verdict, "Can't read that pitch. Send it again as JSON.", VerdictData(verdict));
-                    request = CrewPrompts.RevisionRequest(sheet, verdict.Reasons);
-                    continue;
+                    case ExecutorFailedEvent failed:
+                        throw new InvalidOperationException($"Crew step '{failed.ExecutorId}' failed.", failed.Data as Exception);
+                    case WorkflowErrorEvent error:
+                        throw new InvalidOperationException("The crew workflow failed.", error.Data as Exception);
                 }
-
-                Say(CrewRole.Gaffer, CrewMessageKind.Pitch, $"{pitch.Headline}. {pitch.Body}",
-                    new() { ["headline"] = pitch.Headline, ["body"] = pitch.Body, ["claims"] = pitch.Claims, ["round"] = rounds });
-
-                verdict = RefChecker.Check(pitch, sheet);
-                if (verdict.Approved)
-                {
-                    var review = await Review(sheet, pitch, ct);
-                    if (review is { Approved: false })
-                        verdict = verdict with { Approved = false, Reasons = review.Reasons ?? ["Ref isn't convinced."] };
-                }
-
-                Say(CrewRole.Ref, CrewMessageKind.Verdict, verdict.Approved
-                        ? $"Checked {Plural(verdict.ClaimsChecked, "claim")} and {Plural(verdict.NumbersChecked, "number")}. Clean. Approved."
-                        : $"Rejected. {string.Join(" ", verdict.Reasons)}",
-                    VerdictData(verdict));
-                if (verdict.Approved) break;
-                request = CrewPrompts.RevisionRequest(sheet, verdict.Reasons);
             }
-
-            if (verdict is not { Approved: true } || pitch is null)
-            {
-                Say(CrewRole.Gallery, CrewMessageKind.Decision, "Ref never cleared it. The template graphic stays; nothing unverified goes on air.",
-                    new() { ["air"] = false });
-                return CrewResult.NotAired(verdict, rounds);
-            }
-
-            var air = Gallery.Decide(m, nowMatchT());
-            Say(CrewRole.Gallery, CrewMessageKind.Decision, air.Reason, new() { ["air"] = air.Air });
-            if (!air.Air) return CrewResult.NotAired(verdict, rounds);
-
-            var card = HostAgent.Studio(pitch, template);
-            var versions = await PresentToViewers(pitch, b, template, viewers, Say, ct);
-            var audience = versions.Count == 0 ? "the studio feed"
-                : "the studio feed and " + string.Join(", ", versions.Select(v => $"{Label(v.Viewer)} ({v.Viewer.Language.ToUpperInvariant()})"));
-            Say(CrewRole.Host, CrewMessageKind.OnAir, $"On air for {audience}: {card.Headline}",
-                new() { ["cardId"] = card.Id, ["viewers"] = versions.Count });
-            return new CrewResult(card, verdict, rounds, versions);
+            return job.Card is { } card
+                ? new CrewResult(card, job.Verdict, job.Rounds, job.Versions)
+                : CrewResult.NotAired(job.Verdict, job.Rounds);
         }
         finally
         {
             Gallery.Finished();
         }
+    }
+
+    /// <summary>
+    /// The crew as a Microsoft Agent Framework workflow. Each character is an executor; the edges
+    /// carry the editorial logic: Ref sends a pitch back to The Gaffer while revisions remain,
+    /// and Gallery only passes a story to The Host if it's verified and still fresh.
+    /// </summary>
+    public Workflow BuildWorkflow()
+    {
+        var stats = Step("Stats", BriefAsync);
+        var gaffer = Step("The Gaffer", PitchAsync);
+        var referee = Step("Ref", CheckAsync);
+        var gallery = Step("Gallery", DecideAsync);
+        var host = Step("The Host", PresentAsync);
+        // The last step's result is the workflow's output: what went on air (or why nothing did).
+        ExecutorBinding onAir = new FunctionExecutor<CrewRun>("On air",
+            (run, context, ct) => context.YieldOutputAsync(run, ct),
+            outputTypes: [typeof(CrewRun)]);
+
+        return new WorkflowBuilder(stats)
+            .WithName("Virtual Studio Crew")
+            .WithDescription("Stats briefs, The Gaffer pitches, Ref checks, Gallery decides, The Host presents.")
+            .AddEdge(stats, gaffer)
+            .AddEdge(gaffer, referee)
+            .AddEdge<CrewRun>(referee, gaffer, r => r!.CanRevise(_options.MaxRevisions), "sent back")
+            .AddEdge<CrewRun>(referee, gallery, r => !r!.CanRevise(_options.MaxRevisions), "verdict")
+            .AddEdge<CrewRun>(gallery, host, r => r!.Air, "airs")
+            .AddEdge<CrewRun>(gallery, onAir, r => !r!.Air, "dropped")
+            .AddEdge(host, onAir)
+            .WithOutputFrom(onAir)
+            .Build();
+    }
+
+    private static ExecutorBinding Step(string id, Func<CrewRun, CancellationToken, Task> step) =>
+        ((Func<CrewRun, IWorkflowContext, CancellationToken, ValueTask<CrewRun>>)(async (run, _, ct) =>
+        {
+            await step(run, ct);
+            return run;
+        })).BindAsExecutor(id);
+
+    private async Task BriefAsync(CrewRun run, CancellationToken ct)
+    {
+        var (m, sheet) = (run.Briefing.Moment, run.Briefing.Sheet);
+        run.Say(CrewRole.Stats, CrewMessageKind.Brief,
+            $"{sheet.Facts.Count} facts on the sheet for the {Describe(m.Kind)} ({m.Minute}').",
+            new() { ["facts"] = sheet.Facts.Count });
+        var tools = _stats.Tools(sheet, run.Briefing.Snapshot, run.Briefing.Info,
+            what => run.Say(CrewRole.Stats, CrewMessageKind.ToolCall, $"The Gaffer asked for more: {what}."));
+        run.Session = await _gaffer.CreateSessionAsync(ct);
+        run.GafferOptions = new ChatClientAgentRunOptions(new ChatOptions
+        {
+            Tools = tools,
+            ResponseFormat = ChatResponseFormat.Json,
+            MaxOutputTokens = 400,
+            Temperature = 0.4f,
+        });
+        run.Request = CrewPrompts.PitchRequest(sheet);
+    }
+
+    private async Task PitchAsync(CrewRun run, CancellationToken ct)
+    {
+        run.Rounds++;
+        var response = await _gaffer.RunAsync(run.Request, run.Session, run.GafferOptions, ct);
+        run.Pitch = Parse<StoryPitch>(response.Text);
+        run.Verdict = null;
+        if (run.Pitch is { } pitch)
+            run.Say(CrewRole.Gaffer, CrewMessageKind.Pitch, $"{pitch.Headline}. {pitch.Body}",
+                new() { ["headline"] = pitch.Headline, ["body"] = pitch.Body, ["claims"] = pitch.Claims, ["round"] = run.Rounds });
+    }
+
+    private async Task CheckAsync(CrewRun run, CancellationToken ct)
+    {
+        var sheet = run.Briefing.Sheet;
+        if (run.Pitch is not { } pitch)
+        {
+            run.Verdict = new Verdict(false, ["The pitch wasn't valid JSON."], 0, 0);
+            run.Say(CrewRole.Ref, CrewMessageKind.Verdict, "Can't read that pitch. Send it again as JSON.", VerdictData(run.Verdict));
+        }
+        else
+        {
+            var verdict = RefChecker.Check(pitch, sheet);
+            if (verdict.Approved && await Review(sheet, pitch, ct) is { Approved: false } review)
+                verdict = verdict with { Approved = false, Reasons = review.Reasons ?? ["Ref isn't convinced."] };
+            run.Verdict = verdict;
+            run.Say(CrewRole.Ref, CrewMessageKind.Verdict, verdict.Approved
+                    ? $"Checked {Plural(verdict.ClaimsChecked, "claim")} and {Plural(verdict.NumbersChecked, "number")}. Clean. Approved."
+                    : $"Rejected. {string.Join(" ", verdict.Reasons)}",
+                VerdictData(verdict));
+        }
+        if (!run.Approved) run.Request = CrewPrompts.RevisionRequest(sheet, run.Verdict!.Reasons);
+    }
+
+    private Task DecideAsync(CrewRun run, CancellationToken _)
+    {
+        if (!run.Approved)
+        {
+            run.Say(CrewRole.Gallery, CrewMessageKind.Decision, "Ref never cleared it. The template graphic stays; nothing unverified goes on air.",
+                new() { ["air"] = false });
+            return Task.CompletedTask;
+        }
+        var air = Gallery.Decide(run.Briefing.Moment, run.Now());
+        run.Air = air.Air;
+        run.Say(CrewRole.Gallery, CrewMessageKind.Decision, air.Reason, new() { ["air"] = air.Air });
+        return Task.CompletedTask;
+    }
+
+    private async Task PresentAsync(CrewRun run, CancellationToken ct)
+    {
+        var card = HostAgent.Studio(run.Pitch!, run.Template);
+        run.Versions = await PresentToViewers(run.Pitch!, run.Briefing, run.Template, run.Viewers, run.Say, ct);
+        var audience = run.Versions.Count == 0 ? "the studio feed"
+            : "the studio feed and " + string.Join(", ", run.Versions.Select(v => $"{Label(v.Viewer)} ({v.Viewer.Language.ToUpperInvariant()})"));
+        run.Say(CrewRole.Host, CrewMessageKind.OnAir, $"On air for {audience}: {card.Headline}",
+            new() { ["cardId"] = card.Id, ["viewers"] = run.Versions.Count });
+        run.Card = card;
     }
 
     private async Task<IReadOnlyList<HostVersion>> PresentToViewers(StoryPitch pitch, Briefing b, InsightCard template,

@@ -184,3 +184,17 @@ public class CrewTests
         Assert.False(gallery.Decide(m, 1200).Air);
     }
 }
+
+public class WorkflowTests
+{
+    [Fact]
+    public void The_crew_is_an_agent_framework_workflow_with_a_review_loop()
+    {
+        var workflow = new StudioCrew(new ScriptedChatClient(0), new CrewOptions()).BuildWorkflow();
+        var mermaid = Microsoft.Agents.AI.Workflows.WorkflowVisualizer.ToMermaidString(workflow);
+        Assert.Contains("Stats (Start)", mermaid);
+        Assert.Contains("Ref -. sent back .-> The_Gaffer", mermaid);
+        Assert.Contains("Gallery -. airs .-> The_Host", mermaid);
+        Assert.Contains("Gallery -. dropped .-> On_air", mermaid);
+    }
+}

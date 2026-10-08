@@ -85,8 +85,14 @@ switch (command)
         }
         break;
 
+    case "workflow":
+        // The crew's Agent Framework workflow, drawn by the framework itself.
+        Console.WriteLine(Microsoft.Agents.AI.Workflows.WorkflowVisualizer.ToMermaidString(
+            new StudioCrew(new ScriptedChatClient(0), new CrewOptions()).BuildWorkflow()));
+        break;
+
     default:
-        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary, moments, crew or commentary.");
+        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary, moments, crew, commentary or workflow.");
         return 1;
 }
 return 0;
