@@ -74,8 +74,19 @@ switch (command)
         }
         break;
 
+    case "commentary":
+        var commentaryPipeline = new MatchPipeline(match.Info);
+        var commentator = new Commentator(match.Info, Arg("--lang") ?? "en");
+        foreach (var e in match.Events)
+        {
+            commentaryPipeline.Process(e);
+            if (commentator.Call(e, commentaryPipeline.State) is { } line)
+                Console.WriteLine($"{line.Minute,3}' {(line.Voiced ? "🔊" : "  ")} {new string('!', line.Excitement),-3} {line.Text}");
+        }
+        break;
+
     default:
-        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary, moments or crew.");
+        Console.Error.WriteLine($"Unknown command '{command}'. Use generate, summary, moments, crew or commentary.");
         return 1;
 }
 return 0;

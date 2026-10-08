@@ -230,3 +230,15 @@ button.primary { background: var(--accent); color: #04130b; border-color: transp
 .recap-lines li strong { color: var(--crew); font-size: 0.8rem; }
 .recap-lines li p { margin: 2px 0 0; color: #d6dde6; line-height: 1.4; }
 .recap-lines li.speaking { border-left-color: var(--crew); background: #1d2734; }
+
+/* Live commentary */
+.commentary { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: end; background: #0d131b; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 52px; }
+.commentary-mic { font-size: 0.95rem; opacity: 0.8; padding-bottom: 2px; }
+.commentary-lines { display: grid; gap: 1px; min-width: 0; }
+.commentary-lines p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.commentary-prev { font-size: 0.75rem; color: var(--muted); }
+.commentary-now { font-size: 0.9rem; animation: slide-in 0.3s ease-out; }
+.commentary-now.excite-2 { color: #ffd166; font-weight: 600; }
+.commentary-now.excite-3 { color: #fff; font-weight: 800; text-shadow: 0 0 12px #ff3b47; }
+.fan-pane .commentary-now { font-size: 0.82rem; }
+.notice { background: #3a2a10; color: #ffd166; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem; }

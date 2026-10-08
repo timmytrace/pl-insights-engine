@@ -11,13 +11,15 @@ public sealed record RecapResult(RecapScript Script, byte[]? Audio, string? Audi
 /// Builds the full-time recap for a match once per language and caches it: the script costs a
 /// model call and the audio a Speech call, and a simulated match never changes.
 /// </summary>
-public sealed class RecapService(MatchLibrary library, IChatClient chat, RecapVoice voice, ILogger<RecapService> logger)
+public sealed class RecapService(MatchLibrary library, IChatClient chat, RecapVoice voice, UsageGuard usage, ILogger<RecapService> logger)
 {
     private readonly ConcurrentDictionary<(int Seed, string Lang), Lazy<Task<RecapResult>>> _cache = new();
 
-    public async Task<RecapResult> GetAsync(int seed, string language)
+    /// <summary>The recap, or null when a new one would go over the hourly budget.</summary>
+    public async Task<RecapResult?> GetAsync(int seed, string language)
     {
         var key = (seed, language);
+        if (!_cache.ContainsKey(key) && !usage.TryNewRecap()) return null;
         var entry = _cache.GetOrAdd(key, k => new Lazy<Task<RecapResult>>(() => BuildAsync(k.Seed, k.Lang)));
         try
         {

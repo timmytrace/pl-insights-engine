@@ -202,6 +202,18 @@ export interface CrewMessage {
   }
 }
 
+export interface CommentaryLine {
+  eventId: string
+  seq: number
+  t: number
+  clock: number
+  minute: number
+  language: 'en' | 'es' | 'fr'
+  text: string
+  excitement: number
+  voiced: boolean
+}
+
 export type Envelope =
   | { type: 'info'; t: number; data: MatchInfo }
   | { type: 'event'; t: number; data: EventMetrics }
@@ -209,4 +221,6 @@ export type Envelope =
   | { type: 'moment'; t: number; data: Moment }
   | { type: 'card'; t: number; data: InsightCard }
   | { type: 'crew'; t: number; data: CrewMessage }
+  | { type: 'commentary'; t: number; data: CommentaryLine }
+  | { type: 'notice'; t: number; data: { text: string } }
   | { type: 'end'; t: number; data: MatchSnapshot }

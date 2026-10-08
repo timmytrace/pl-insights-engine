@@ -42,13 +42,26 @@ public sealed class RecapVoice(HttpClient http, CrewOptions options, TokenCreden
     }
 
     /// <summary>MP3 audio for the script, or null when speech isn't configured.</summary>
-    public async Task<byte[]?> SynthesizeAsync(RecapScript script, CancellationToken ct)
+    public Task<byte[]?> SynthesizeAsync(RecapScript script, CancellationToken ct) =>
+        !Enabled || script.Lines.Count == 0 ? Task.FromResult<byte[]?>(null) : PostAsync(Ssml(script), ct);
+
+    /// <summary>One live commentary line in The Host's voice, a little faster and higher the bigger the moment.</summary>
+    public Task<byte[]?> SynthesizeLineAsync(string text, string language, int excitement, CancellationToken ct) =>
+        !Enabled ? Task.FromResult<byte[]?>(null) : PostAsync(LineSsml(text, language, excitement), ct);
+
+    public static string LineSsml(string text, string language, int excitement)
     {
-        if (!Enabled || script.Lines.Count == 0) return null;
+        var (rate, pitch) = excitement switch { >= 3 => ("+20%", "+12%"), 2 => ("+10%", "+6%"), _ => ("+0%", "+0%") };
+        return $"<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"{Locales.GetValueOrDefault(language, "en-GB")}\">" +
+               $"<voice name=\"{VoiceFor(language, "host")}\"><prosody rate=\"{rate}\" pitch=\"{pitch}\">{SecurityElement.Escape(text)}</prosody></voice></speak>";
+    }
+
+    private async Task<byte[]?> PostAsync(string ssml, CancellationToken ct)
+    {
         using var request = new HttpRequestMessage(HttpMethod.Post,
             $"https://{options.SpeechRegion}.tts.speech.microsoft.com/cognitiveservices/v1")
         {
-            Content = new StringContent(Ssml(script), Encoding.UTF8, "application/ssml+xml"),
+            Content = new StringContent(ssml, Encoding.UTF8, "application/ssml+xml"),
         };
         request.Headers.Add("X-Microsoft-OutputFormat", "audio-24khz-48kbitrate-mono-mp3");
         request.Headers.UserAgent.Add(new ProductInfoHeaderValue("VirtualStudioCrew", "1.0"));

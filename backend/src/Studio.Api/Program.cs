@@ -15,6 +15,8 @@ builder.Services.AddSingleton<IChatClient>(_ => ModelFactory.Create(crewOptions)
 builder.Services.AddHttpClient("speech");
 builder.Services.AddSingleton(sp => new RecapVoice(sp.GetRequiredService<IHttpClientFactory>().CreateClient("speech"), crewOptions));
 builder.Services.AddSingleton<RecapService>();
+builder.Services.AddSingleton<UsageGuard>();
+builder.Services.AddSingleton<CommentaryService>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5173"])
     .AllowAnyHeader()
@@ -48,34 +50,48 @@ matches.MapGet("/summary", (int seed, MatchLibrary lib) => lib.Summary(seed));
 // Full-time recap: a short crew conversation in the viewer's language, checked by Ref, plus its audio.
 matches.MapGet("/recap", async (int seed, string? lang, RecapService recaps) =>
 {
-    var result = await recaps.GetAsync(seed, Language(lang));
-    return new
+    if (await recaps.GetAsync(seed, Language(lang)) is not { } result)
+        return Results.Problem("The crew has written its limit of new recaps this hour. Try a match that's already been recapped, or come back later.", statusCode: 429);
+    return Results.Ok(new
     {
         result.Script,
         hasAudio = result.Audio is not null,
         result.AudioError,
         voices = result.Script.Lines.Select(l => RecapVoice.VoiceFor(result.Script.Language, l.Speaker)),
-    };
+    });
 });
 matches.MapGet("/recap/audio", async (int seed, string? lang, RecapService recaps) =>
-    (await recaps.GetAsync(seed, Language(lang))).Audio is { } audio ? Results.File(audio, "audio/mpeg") : Results.NotFound());
+    (await recaps.GetAsync(seed, Language(lang)))?.Audio is { } audio ? Results.File(audio, "audio/mpeg") : Results.NotFound());
+
+// Live commentary: every line for a match, and the voice for the big moments (server-written lines only).
+matches.MapGet("/commentary", (int seed, string? lang, CommentaryService commentary) =>
+    commentary.Lines(seed, Language(lang)).Values.OrderBy(l => l.Seq));
+matches.MapGet("/commentary/{seq:int}/audio", async (int seed, int seq, string? lang, CommentaryService commentary) =>
+    await commentary.AudioAsync(seed, Language(lang), seq) is { } audio ? Results.File(audio, "audio/mpeg") : Results.NotFound());
 
 // Live replay: streams the match as if it were happening, `speed` times faster than real time.
 // `crew=off` streams template cards only. `viewers=analyst.en,casual.es,club.fr.home,player.en.H10`
 // adds a personalised version of every card for each viewer (up to four).
 app.Map("/ws/replay", async (HttpContext ctx, MatchLibrary lib, IChatClient chat, CrewOptions crewOptions,
-    ILogger<ReplayStreamer> logger, IHostApplicationLifetime lifetime) =>
+    CommentaryService commentary, UsageGuard usage, ILogger<ReplayStreamer> logger, IHostApplicationLifetime lifetime) =>
 {
     if (!ctx.WebSockets.IsWebSocketRequest)
         return Results.BadRequest("Expected a WebSocket request.");
 
     var seed = int.TryParse(ctx.Request.Query["seed"], out var s) ? s : 7;
     var speed = double.TryParse(ctx.Request.Query["speed"], out var sp) ? Math.Clamp(sp, 1, 10_000) : 20;
-    var crew = ctx.Request.Query["crew"] == "off" ? null : new StudioCrew(chat, crewOptions);
+    var wantsCrew = ctx.Request.Query["crew"] != "off";
+    using var crewSlot = wantsCrew ? usage.TryStartCrewReplay() : null;
+    var crew = crewSlot is null ? null : new StudioCrew(chat, crewOptions);
     var viewers = ViewerProfile.ParseList(ctx.Request.Query["viewers"]);
+    var languages = viewers.Select(v => v.Language).Append("en").Distinct();
+    var lines = languages.ToDictionary(l => l, l => commentary.Lines(seed, l));
+    var notice = wantsCrew && crew is null
+        ? "The live crew is busy with other viewers right now, so this replay shows template graphics. Try again in a few minutes."
+        : null;
     using var socket = await ctx.WebSockets.AcceptWebSocketAsync();
     using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted, lifetime.ApplicationStopping);
-    await new ReplayStreamer(lib.Get(seed), speed, crew, viewers, logger).StreamAsync(
+    await new ReplayStreamer(lib.Get(seed), speed, crew, viewers, lines, notice, logger).StreamAsync(
         (envelope, ct) => socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(envelope, StudioJson.Options),
             WebSocketMessageType.Text, true, ct),
         cts.Token);

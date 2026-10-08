@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CrewMessage, CrewRoleId, Envelope, EventMetrics, InsightCard, MatchEvent, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
+import type { CommentaryLine, CrewMessage, CrewRoleId, Envelope, EventMetrics, InsightCard, MatchEvent, MatchInfo, MatchSnapshot, Moment, Slot } from './types'
+import { CommentaryVoice } from './commentaryVoice'
 
 export type Status = 'idle' | 'connecting' | 'live' | 'full_time' | 'error'
 
@@ -30,7 +31,13 @@ export interface ReplayState {
   stories: Record<string, InsightCard[]>
   /** Every event so far, for the "Why did that happen?" replay. */
   events: Record<string, MatchEvent>
+  /** Live commentary per language, newest last. */
+  commentary: Record<string, CommentaryLine[]>
+  /** A message from the server, e.g. when the live crew is busy. */
+  notice?: string
 }
+
+export interface VoiceSettings { on: boolean; lang: string }
 
 export const STUDIO = 'studio'
 
@@ -44,21 +51,30 @@ const STORIES = 12
 const TAG_KINDS = new Set(['shot_speed', 'sprint_speed', 'milestone'])
 
 const emptyTally: CrewTally = { claimsChecked: 0, numbersChecked: 0, sentBack: 0, approved: 0, upgraded: 0, dropped: 0 }
-const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {} }
+const COMMENTARY = 4
+const initial: ReplayState = { status: 'idle', recent: [], feed: [], moments: {}, crew: [], tally: emptyTally, overlays: {}, stories: {}, events: {}, commentary: {} }
 
 /**
  * Connects to the replay socket and folds the stream into render state. Overlay slots hold
  * one card each: a higher-priority card (lower number) replaces the current one. A verified
  * agent card replaces its template in place if the template is still on screen.
  */
-export function useReplay() {
+export function useReplay(voice: VoiceSettings) {
   const [state, setState] = useState<ReplayState>(initial)
   const socket = useRef<WebSocket | null>(null)
   const speedRef = useRef(20)
+  const voiceRef = useRef(voice)
+  const speaker = useRef<CommentaryVoice | null>(null)
+
+  useEffect(() => {
+    voiceRef.current = voice
+    if (!voice.on) speaker.current?.stop()
+  }, [voice])
 
   const stop = useCallback(() => {
     socket.current?.close()
     socket.current = null
+    speaker.current?.stop()
   }, [])
 
   const start = useCallback((seed: number, speed: number, crew: boolean, viewers: string[]) => {
@@ -71,9 +87,12 @@ export function useReplay() {
     if (viewers.length) query.set('viewers', viewers.join(','))
     const ws = new WebSocket(`${proto}://${location.host}/ws/replay?${query}`)
     socket.current = ws
+    speaker.current = new CommentaryVoice(seed)
 
     ws.onmessage = (msg) => {
       const env = JSON.parse(msg.data) as Envelope
+      if (env.type === 'commentary' && env.data.voiced && voiceRef.current.on && env.data.language === voiceRef.current.lang)
+        speaker.current?.say(env.data)
       setState((s) => reduce(s, env, speedRef.current))
     }
     ws.onerror = () => setState((s) => ({ ...s, status: 'error' }))
@@ -111,6 +130,12 @@ function reduce(s: ReplayState, env: Envelope, speed: number): ReplayState {
   switch (env.type) {
     case 'info':
       return { ...s, status: 'live', info: env.data }
+    case 'notice':
+      return { ...s, notice: env.data.text }
+    case 'commentary': {
+      const lang = env.data.language
+      return { ...s, commentary: { ...s.commentary, [lang]: [...(s.commentary[lang] ?? []), env.data].slice(-COMMENTARY) } }
+    }
     case 'event': {
       const recent = [...s.recent, env.data].slice(-TRAIL)
       const feed = FEED_TYPES.has(env.data.event.type) ? [env.data, ...s.feed].slice(0, FEED) : s.feed

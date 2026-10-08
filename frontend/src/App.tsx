@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { STUDIO, useReplay } from './useReplay'
 import { Pitch } from './components/Pitch'
 import { Overlays } from './components/Overlays'
@@ -10,14 +10,18 @@ import { CrewBar } from './components/CrewBar'
 import { FanView } from './components/FanView'
 import { WhyReplay } from './components/WhyReplay'
 import { RecapPanel } from './components/RecapPanel'
-import { DEFAULT_VIEWERS, spec, type Viewer } from './viewers'
+import { CommentaryBar } from './components/CommentaryBar'
+import { DEFAULT_VIEWERS, LANGS, spec, type Lang, type Viewer } from './viewers'
 import type { InsightCard, MatchInfo, Moment } from './types'
 
 const SPEEDS = [1, 5, 10, 20, 60]
 type View = 'studio' | 'fans'
 
 export default function App() {
-  const { state, start, stop } = useReplay()
+  const [voiceOn, setVoiceOn] = useState(false)
+  const [voiceLang, setVoiceLang] = useState<Lang>('en')
+  const voice = useMemo(() => ({ on: voiceOn, lang: voiceLang }), [voiceOn, voiceLang])
+  const { state, start, stop } = useReplay(voice)
   const [seed, setSeed] = useState(7)
   const [speed, setSpeed] = useState(10)   // the live crew needs ~6-10 s per story; faster replays outrun Gallery's freshness budget
   const [crewOn, setCrewOn] = useState(true)
@@ -72,12 +76,21 @@ export default function App() {
           <label className="toggle">
             <input type="checkbox" checked={crewOn} onChange={(e) => setCrewOn(e.target.checked)} /> AI crew
           </label>
+          <label className="toggle">
+            <input type="checkbox" checked={voiceOn} onChange={(e) => setVoiceOn(e.target.checked)} /> 🔊 Commentary
+          </label>
+          {voiceOn && (
+            <select value={voiceLang} onChange={(e) => setVoiceLang(e.target.value as Lang)} aria-label="Commentary language">
+              {LANGS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+            </select>
+          )}
           <button type="submit" className="primary">{running ? 'Restart' : 'Kick off'}</button>
           {running && <button type="button" onClick={stop}>Stop</button>}
         </form>
         <span className={`status status-${state.status}`}>{state.status.replace('_', ' ')}</span>
       </header>
 
+      {state.notice && <div className="notice" role="status">{state.notice}</div>}
       <Scoreboard info={state.info} snapshot={state.snapshot} status={state.status} />
       <CrewBar active={state.speaker?.id} state={state.speaker?.state} />
 
@@ -101,6 +114,7 @@ export default function App() {
             <Pitch info={state.info} recent={state.recent}>
               <Overlays info={state.info} overlays={state.overlays[STUDIO] ?? {}} />
             </Pitch>
+            <CommentaryBar lines={state.commentary.en} />
             <div className="below-stage">
               {controlRoom}
               <EventTicker info={state.info} feed={state.feed} />

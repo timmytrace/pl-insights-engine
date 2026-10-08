@@ -4,7 +4,7 @@ using Studio.Engine;
 
 namespace Studio.Api;
 
-/// <summary>One message on the replay socket. Type is info | event | snapshot | moment | card | crew | end.</summary>
+/// <summary>One message on the replay socket. Type is info | notice | event | commentary | snapshot | moment | card | crew | end.</summary>
 public sealed record Envelope(string Type, double T, object Data);
 
 /// <summary>
@@ -13,6 +13,7 @@ public sealed record Envelope(string Type, double T, object Data);
 /// the background and its Control Room messages and upgraded card join the stream when ready.
 /// </summary>
 public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, IReadOnlyList<ViewerProfile> viewers,
+    IReadOnlyDictionary<string, IReadOnlyDictionary<int, CommentaryLine>>? commentary = null, string? notice = null,
     ILogger? logger = null)
 {
     private const double SnapshotEvery = 5;       // match seconds
@@ -27,6 +28,7 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
     {
         var pipeline = new MatchPipeline(match.Info);
         await send(new Envelope("info", 0, match.Info), ct);
+        if (notice is not null) await send(new Envelope("notice", 0, new { text = notice }), ct);
 
         double previousT = 0, lastSnapshot = double.NegativeInfinity;
         foreach (var e in match.Events)
@@ -38,6 +40,8 @@ public sealed class ReplayStreamer(Match match, double speed, StudioCrew? crew, 
 
             var step = pipeline.Process(e);
             await send(new Envelope("event", e.T, step.Metrics), ct);
+            foreach (var lines in commentary?.Values ?? [])
+                if (lines.TryGetValue(e.Seq, out var line)) await send(new Envelope("commentary", e.T, line), ct);
             foreach (var m in step.Moments)
             {
                 await send(new Envelope("moment", e.T, m), ct);

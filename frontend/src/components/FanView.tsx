@@ -4,6 +4,7 @@ import { LANGS, PERSONAS, personaLabel, spec, type Viewer } from '../viewers'
 import { Pitch } from './Pitch'
 import { Overlays } from './Overlays'
 import { Avatar } from './Avatar'
+import { CommentaryBar } from './CommentaryBar'
 
 interface Props {
   state: ReplayState
@@ -92,6 +93,7 @@ function FanPane({ viewer, info, state, running, onChange, onRemove, onWhy }: Pa
       <Pitch info={state.info} recent={state.recent} highlightPlayer={viewer.persona === 'player' ? viewer.player : undefined}>
         <Overlays info={state.info} overlays={state.overlays[key] ?? {}} single />
       </Pitch>
+      <CommentaryBar lines={state.commentary[viewer.lang]} />
 
       {viewer.persona === 'player' && <PlayerStrip snapshot={state.snapshot} playerId={viewer.player} />}
 
