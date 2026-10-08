@@ -375,7 +375,7 @@ public sealed class MatchSimulator
         var xg = Pitch.ShotXg(_bx, _by, underPressure, header: false);
         // Long-range efforts are rare but real; close chances get taken, and a crowded box
         // means many attacks die before a shot (handled in Pass/Carry).
-        var pShot = _bx < 72 ? 0 : Pitch.Clamp(0.055 + xg * 0.35, 0, 0.3);
+        var pShot = _bx < 68 ? 0 : Pitch.Clamp(0.07 + xg * 0.26, 0, 0.25);
         const double pCarry = 0.16;
         var r = _rng.Next();
         if (r < pShot) Shot(underPressure);
@@ -411,7 +411,7 @@ public sealed class MatchSimulator
         var receiverId = PlayerAt(side, receiver).Id;
 
         var diff = Pitch.PassDifficulty(_bx, _by, ex, ey, underPressure);
-        var crowding = Pitch.InBox(ex, ey) ? 0.22 : ex > 80 ? 0.08 : 0;
+        var crowding = Pitch.InBox(ex, ey) ? 0.27 : ex > 80 ? 0.10 : 0;
         var pComplete = Pitch.Clamp(
             1.02 - 0.55 * diff - crowding + 0.2 * (style.Strength - 0.5) - 0.12 * (ostyle.Press - 0.4), 0.2, 0.99);
         var dist = Pitch.Distance(_bx, _by, ex, ey);
@@ -474,7 +474,7 @@ public sealed class MatchSimulator
         var angle = _rng.Gauss(0, 0.6);
         var ex = Pitch.Clamp(_bx + dist * Math.Cos(angle), 1, 104);
         var ey = Pitch.Clamp(_by + dist * Math.Sin(angle), 1, 67);
-        var pLost = 0.08 + (underPressure ? 0.18 : 0) + 0.1 * (ostyle.Press - 0.4) + (ex > 85 ? 0.15 : 0);
+        var pLost = 0.08 + (underPressure ? 0.18 : 0) + 0.1 * (ostyle.Press - 0.4) + (ex > 85 ? 0.22 : 0);
         var speed = _rng.Uniform(14, 26);
 
         if (!_rng.Chance(pLost))
@@ -522,8 +522,8 @@ public sealed class MatchSimulator
         else
         {
             var rest = _rng.Next();
-            var blocked = underPressure ? 0.35 : 0.22;
-            outcome = rest < blocked ? "blocked" : rest < blocked + 0.38 ? "saved" : "off_target";
+            var blocked = underPressure ? 0.40 : 0.28;
+            outcome = rest < blocked ? "blocked" : rest < blocked + 0.30 ? "saved" : "off_target";
         }
         var gy = outcome == "off_target"
             ? Pitch.GoalY + (_rng.Chance(0.5) ? -1 : 1) * _rng.Uniform(4.2, 9)

@@ -1,42 +1,72 @@
 [
   {
     "Seed": 3,
-    "Minute": 4,
-    "Kind": "ElitePass",
-    "Drafts": 2,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 23397,
-    "Rejections": [
-      "It\u0027s minute 4: possession for the match doesn\u0027t mean anything yet."
-    ],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 3,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Ulloa\u0027s elite pass under pressure. Viktor Ulloa completes a 48m progressive pass at 97.5 km/h under pressure, showing precise control early in the match. Cobalt Park holds 68.4% possession but faces momentum challenges.",
-    "FinalText": "Ulloa\u0027s precise elite pass early on. At minute 4, Viktor Ulloa delivers a 48m progressive pass at 97.5 km/h under pressure with perfect accuracy. Cobalt Park shows strong control but faces early momentum challenges."
-  },
-  {
-    "Seed": 3,
     "Minute": 5,
     "Kind": "ElitePass",
     "Drafts": 2,
     "FirstApproved": false,
     "Aired": true,
-    "MsToAir": 10284,
+    "MsToAir": 34462,
     "Rejections": [
       "It\u0027s minute 5: possession for the match doesn\u0027t mean anything yet."
     ],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Long pressured pass breaks midfield deadlock. Dario Adeyemi completes a difficult 35.5m progressive pass under pressure to Kwame Ibarra, showing Cobalt Park\u0027s intent despite negative momentum and high chaos early on.",
+    "FinalText": "Dario Adeyemi\u2019s pressured long pass shines. At minute 5, Adeyemi completes a tough 35.5m progressive pass under pressure to Kwame Ibarra, highlighting Cobalt Park\u2019s early attempts to control play amid high chaos and negative momentum."
+  },
+  {
+    "Seed": 3,
+    "Minute": 13,
+    "Kind": "Goal",
+    "Drafts": 2,
+    "FirstApproved": false,
+    "Aired": true,
+    "MsToAir": 17502,
+    "Rejections": [
+      "It\u0027s minute 13: possession for the match doesn\u0027t mean anything yet."
+    ],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 3,
+      "Fluency": 3
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 3,
+      "Fluency": 3
+    },
+    "SpanishCasual": {
+      "Groundedness": 4,
+      "Relevance": 3,
+      "Coherence": 3,
+      "Fluency": 4
+    },
+    "FirstDraftText": "Vance heads home early opener. Jonas Vance scores a low-xg headed goal from 23 meters, assisted by Pavel Okafor. Despite Cobalt Park\u0027s negative momentum, they control possession and pressing intensity.",
+    "FinalText": "Vance heads a rare long-range goal. Jonas Vance scores from a rare headed shot with low xG at 23 meters, assisted by Pavel Okafor. Cobalt Park shows strong control and pressing despite negative momentum."
+  },
+  {
+    "Seed": 3,
+    "Minute": 14,
+    "Kind": "MomentumSwing",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 9295,
+    "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
       "Relevance": 3,
@@ -45,99 +75,18 @@
     },
     "Final": {
       "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Okafor receives under pressure elite pass. Jonas Vance delivers a difficult, progressive pass under pressure to Pavel Okafor from 35 meters at 75 km/h. Despite Cobalt Park\u0027s possession dominance, momentum is against them early on.",
-    "FinalText": "Vance\u0027s elite pass breaks lines early. At minute 5, Jonas Vance executes a high-difficulty, progressive pass under pressure to Pavel Okafor over 34.6 meters at 75 km/h. Despite no shots yet, Cobalt Park faces negative momentum."
-  },
-  {
-    "Seed": 3,
-    "Minute": 7,
-    "Kind": "ElitePass",
-    "Drafts": 2,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 12295,
-    "Rejections": [
-      "The pass was progressive and not under pressure, which supports control in build-up, so the first claim is approved.",
-      "The distance and ball speed facts support the quality of the pass, so the second claim is approved.",
-      "The third claim states Ashvale United is trying to create chances through long passes, but the facts do not provide evidence of intent or strategy, only moment, control, and momentum values. This is an interpretation beyond the facts."
-    ],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
       "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Long progressive pass opens play. Yusuf Marsh delivers a precise 41.8m pass at 81.8 km/h to Ruben Yilmaz without pressure, showing Ashvale United\u0027s intent to break opponent control early in the match.",
-    "FinalText": "Long progressive pass shows control. Yusuf Marsh\u0027s 41.8m pass at 81.8 km/h to Ruben Yilmaz is progressive and made without pressure, reflecting Ashvale United\u0027s ability to build play under control early in the match."
-  },
-  {
-    "Seed": 3,
-    "Minute": 9,
-    "Kind": "BigChance",
-    "Drafts": 2,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 16404,
-    "Rejections": [
-      "It\u0027s minute 9: possession for the match doesn\u0027t mean anything yet."
-    ],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
+      "Coherence": 3,
       "Fluency": 4
     },
     "SpanishCasual": {
       "Groundedness": 5,
       "Relevance": 3,
       "Coherence": 4,
-      "Fluency": 3
-    },
-    "FirstDraftText": "Okafor\u0027s close chance tests Ashvale keeper. At 9 minutes, Okafor\u0027s unpressured shot from 8.6m with 0.34 xG was saved, reflecting Cobalt Park\u0027s strong 64.4% possession and control (73.6). This chance highlights their early dominance.",
-    "FinalText": "Okafor\u0027s saved shot signals early pressure. At 9 minutes, Okafor created a big chance with a 0.34 xG shot from 8.6m, unpressured but saved. Cobalt Park\u0027s momentum (69.2) and control (73.6) show early dominance."
-  },
-  {
-    "Seed": 3,
-    "Minute": 12,
-    "Kind": "ChaosSpell",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 7216,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
       "Fluency": 4
     },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Chaos reigns early with high turnovers. At 12 minutes, chaos is high at 68.1 with 2.2 turnovers per minute, disrupting Ashvale United\u0027s rhythm. Despite a decent pass tempo of 11.4, their momentum is negative at -61, reflecting Cobalt Park\u0027s control.",
-    "FinalText": "Chaos reigns early with high turnovers. At 12 minutes, chaos is high at 68.1 with 2.2 turnovers per minute, disrupting Ashvale United\u0027s rhythm. Despite a decent pass tempo of 11.4, their momentum is negative at -61, reflecting Cobalt Park\u0027s control."
+    "FirstDraftText": "Cobalt Park seizes momentum at 14 minutes. Cobalt Park has swung momentum from -67.2 to \u002B47.1, showing a sharp rise in control with 68.1 team control index and intense pressing at 7.6 PPDA over 10 minutes.",
+    "FinalText": "Cobalt Park seizes momentum at 14 minutes. Cobalt Park has swung momentum from -67.2 to \u002B47.1, showing a sharp rise in control with 68.1 team control index and intense pressing at 7.6 PPDA over 10 minutes."
   },
   {
     "Seed": 3,
@@ -146,7 +95,7 @@
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 6320,
+    "MsToAir": 8664,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -161,47 +110,92 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Ashvale United dominates possession and tempo. At 15 minutes, Ashvale United controls 79.5% with a high tempo of 11.4 passes per minute, showing strong command despite negative momentum. Their precise passing contrasts with Cobalt Park\u0027s higher expected goals threat.",
-    "FinalText": "Ashvale United dominates possession and tempo. At 15 minutes, Ashvale United controls 79.5% with a high tempo of 11.4 passes per minute, showing strong command despite negative momentum. Their precise passing contrasts with Cobalt Park\u0027s higher expected goals threat."
+    "FirstDraftText": "Cobalt Park dominates early control. At 15 minutes, Cobalt Park holds 72% control and presses intensely with a 7.4 PPDA, driving momentum \u002B17.9. Their 11.4 tempo passes per minute keep Ashvale United on the back foot.",
+    "FinalText": "Cobalt Park dominates early control. At 15 minutes, Cobalt Park holds 72% control and presses intensely with a 7.4 PPDA, driving momentum \u002B17.9. Their 11.4 tempo passes per minute keep Ashvale United on the back foot."
   },
   {
     "Seed": 3,
-    "Minute": 23,
-    "Kind": "BigChance",
+    "Minute": 16,
+    "Kind": "ElitePass",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 9936,
+    "MsToAir": 6117,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 3
     },
     "Final": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 3
     },
-    "SpanishCasual": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Yilmaz\u0027s close-range shot blocked. At 23 minutes, Ruben Yilmaz\u0027s 4.7m shot with a high xG of 0.61 was blocked, reflecting Ashvale\u0027s strong control (65.2) and momentum (42.9) despite not scoring yet.",
-    "FinalText": "Yilmaz\u0027s close-range shot blocked. At 23 minutes, Ruben Yilmaz\u0027s 4.7m shot with a high xG of 0.61 was blocked, reflecting Ashvale\u0027s strong control (65.2) and momentum (42.9) despite not scoring yet."
+    "SpanishCasual": null,
+    "FirstDraftText": "Yilmaz receives precise elite pass. At 16 minutes, Sami Torres delivers a difficult, high-speed 57-meter progressive pass to Ruben Yilmaz unpressured, highlighting Ashvale United\u0027s attempt to regain control despite trailing 0-1.",
+    "FinalText": "Yilmaz receives precise elite pass. At 16 minutes, Sami Torres delivers a difficult, high-speed 57-meter progressive pass to Ruben Yilmaz unpressured, highlighting Ashvale United\u0027s attempt to regain control despite trailing 0-1."
   },
   {
     "Seed": 3,
-    "Minute": 24,
+    "Minute": 21,
+    "Kind": "ControlSpell",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 9918,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Ashvale United dominates possession but trails. At 21 minutes, Ashvale United controls 73.7% with a high tempo of 14.8 passes per minute, yet they face a -7.1 momentum and trail 0-1, highlighting a struggle to convert control into goals.",
+    "FinalText": "Ashvale United dominates possession but trails. At 21 minutes, Ashvale United controls 73.7% with a high tempo of 14.8 passes per minute, yet they face a -7.1 momentum and trail 0-1, highlighting a struggle to convert control into goals."
+  },
+  {
+    "Seed": 3,
+    "Minute": 27,
+    "Kind": "ControlSpell",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 8627,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Cobalt Park dominates with high control. At 27 minutes, Cobalt Park holds a commanding 76.6 control index and a high tempo of 10.2 passes per minute, reflecting their dominance and dictating the match rhythm against Ashvale United.",
+    "FinalText": "Cobalt Park dominates with high control. At 27 minutes, Cobalt Park holds a commanding 76.6 control index and a high tempo of 10.2 passes per minute, reflecting their dominance and dictating the match rhythm against Ashvale United."
+  },
+  {
+    "Seed": 3,
+    "Minute": 36,
     "Kind": "PressSurge",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 8077,
+    "MsToAir": 8785,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -216,17 +210,42 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Ashvale intensifies press to control play. Ashvale United\u0027s pressing surge with 26 pressures and a PPDA of 5 in the last 10 minutes shows their intent to dominate possession and disrupt Cobalt Park\u0027s rhythm.",
-    "FinalText": "Ashvale intensifies press to control play. Ashvale United\u0027s pressing surge with 26 pressures and a PPDA of 5 in the last 10 minutes shows their intent to dominate possession and disrupt Cobalt Park\u0027s rhythm."
+    "FirstDraftText": "Ashvale intensifies press but trails. Ashvale United\u0027s pressing has ramped up significantly with a PPDA of 5.3 in the last 10 minutes, yet they trail 0-1. Despite strong team control at 74.7%, momentum is against them at -59.8.",
+    "FinalText": "Ashvale intensifies press but trails. Ashvale United\u0027s pressing has ramped up significantly with a PPDA of 5.3 in the last 10 minutes, yet they trail 0-1. Despite strong team control at 74.7%, momentum is against them at -59.8."
   },
   {
     "Seed": 3,
-    "Minute": 24,
+    "Minute": 36,
+    "Kind": "ControlSpell",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 7935,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Ashvale United dominates possession but trails. Ashvale United controls 75% of the play with a high tempo of 11 passes per minute, yet they trail 0-1. Their intense press (PPDA 5.3) contrasts with their negative momentum (-59.8).",
+    "FinalText": "Ashvale United dominates possession but trails. Ashvale United controls 75% of the play with a high tempo of 11 passes per minute, yet they trail 0-1. Their intense press (PPDA 5.3) contrasts with their negative momentum (-59.8)."
+  },
+  {
+    "Seed": 3,
+    "Minute": 43,
     "Kind": "ChaosSpell",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 8504,
+    "MsToAir": 8674,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -241,409 +260,102 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Chaos reigns as Ashvale United controls tempo. At 24 minutes, Ashvale United leads possession at 55.4% with a high chaos index of 67.5, showing a frantic pace with 2.8 turnovers per minute. Their intense pressing (PPDA 5) disrupts Cobalt Park\u0027s rhythm.",
-    "FinalText": "Chaos reigns as Ashvale United controls tempo. At 24 minutes, Ashvale United leads possession at 55.4% with a high chaos index of 67.5, showing a frantic pace with 2.8 turnovers per minute. Their intense pressing (PPDA 5) disrupts Cobalt Park\u0027s rhythm."
+    "FirstDraftText": "Chaos reigns despite Ashvale control. At 43 minutes, Ashvale United leads in control with a 68.8 index but faces high chaos at 69.6 and negative momentum, reflecting their struggle to convert possession into chances against Cobalt Park\u0027s resilient defense.",
+    "FinalText": "Chaos reigns despite Ashvale control. At 43 minutes, Ashvale United leads in control with a 68.8 index but faces high chaos at 69.6 and negative momentum, reflecting their struggle to convert possession into chances against Cobalt Park\u0027s resilient defense."
   },
   {
     "Seed": 3,
-    "Minute": 24,
+    "Minute": 45,
     "Kind": "MomentumSwing",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 9126,
+    "MsToAir": 14024,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "Final": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "SpanishCasual": {
-      "Groundedness": 4,
-      "Relevance": 3,
+      "Groundedness": 5,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
-    "FirstDraftText": "Ashvale United swings momentum sharply. Ashvale United has surged to 78.2 momentum after a previous -70.3, showing strong control at 65 and intense pressing with a PPDA of 5, dominating Cobalt Park\u0027s 43.1 control and 7.5 PPDA.",
-    "FinalText": "Ashvale United swings momentum sharply. Ashvale United has surged to 78.2 momentum after a previous -70.3, showing strong control at 65 and intense pressing with a PPDA of 5, dominating Cobalt Park\u0027s 43.1 control and 7.5 PPDA."
+    "FirstDraftText": "Ashvale United swings momentum before half. Ashvale United has surged to 55.8 momentum after trailing at -72.2, showing a strong control index of 73.6 and intense pressing with a 6.8 PPDA in the last 10 minutes. This shift sets them up to challenge Cobalt Park\u0027s 1-0 lead.",
+    "FinalText": "Ashvale United swings momentum before half. Ashvale United has surged to 55.8 momentum after trailing at -72.2, showing a strong control index of 73.6 and intense pressing with a 6.8 PPDA in the last 10 minutes. This shift sets them up to challenge Cobalt Park\u0027s 1-0 lead."
   },
   {
     "Seed": 3,
-    "Minute": 25,
-    "Kind": "ControlSpell",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 6727,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Ashvale United dominates possession and control. At 25 minutes, Ashvale United holds 72.6 control and 56.4% possession, pressing intensely with a PPDA of 5. Their momentum at 81.4 shows clear dominance over Cobalt Park.",
-    "FinalText": "Ashvale United dominates possession and control. At 25 minutes, Ashvale United holds 72.6 control and 56.4% possession, pressing intensely with a PPDA of 5. Their momentum at 81.4 shows clear dominance over Cobalt Park."
-  },
-  {
-    "Seed": 3,
-    "Minute": 30,
+    "Minute": 47,
     "Kind": "MomentumSwing",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 9134,
+    "MsToAir": 11264,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 4,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Cobalt Park swings momentum at 30 minutes. Cobalt Park overturns a heavy momentum deficit to lead by 48.8 points, showing a surge in control despite trailing in possession and expected goals. Their pressing intensity matches the opponent\u0027s, fueling this shift.",
-    "FinalText": "Cobalt Park swings momentum at 30 minutes. Cobalt Park overturns a heavy momentum deficit to lead by 48.8 points, showing a surge in control despite trailing in possession and expected goals. Their pressing intensity matches the opponent\u0027s, fueling this shift."
-  },
-  {
-    "Seed": 3,
-    "Minute": 35,
-    "Kind": "ControlSpell",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 6386,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Ashvale United dominates possession and control. At 35 minutes, Ashvale United controls 82.5% of the play with 10.6 tempo passes per minute, showing clear dominance and positive momentum at 52.5 in the last 5 minutes.",
-    "FinalText": "Ashvale United dominates possession and control. At 35 minutes, Ashvale United controls 82.5% of the play with 10.6 tempo passes per minute, showing clear dominance and positive momentum at 52.5 in the last 5 minutes."
-  },
-  {
-    "Seed": 3,
-    "Minute": 35,
-    "Kind": "MomentumSwing",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 10265,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 4,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Ashvale United seizes momentum at 35 minutes. Ashvale United has swung momentum from -52 to \u002B52.5, dominating possession at 58.2% with high control at 82.5. Their more intense recent press (PPDA 11.5) is unsettling Cobalt Park.",
-    "FinalText": "Ashvale United seizes momentum at 35 minutes. Ashvale United has swung momentum from -52 to \u002B52.5, dominating possession at 58.2% with high control at 82.5. Their more intense recent press (PPDA 11.5) is unsettling Cobalt Park."
-  },
-  {
-    "Seed": 3,
-    "Minute": 38,
-    "Kind": "Goal",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 8280,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Yilmaz nets from close range. Ruben Yilmaz scores his first with a precise 3.9m shot at 81.9 km/h, boosting Ashvale United\u2019s momentum and control as they dominate possession and pressing intensity.",
-    "FinalText": "Yilmaz nets from close range. Ruben Yilmaz scores his first with a precise 3.9m shot at 81.9 km/h, boosting Ashvale United\u2019s momentum and control as they dominate possession and pressing intensity."
-  },
-  {
-    "Seed": 7,
-    "Minute": 1,
-    "Kind": "ElitePass",
-    "Drafts": 2,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 9555,
-    "Rejections": [
-      "It\u0027s minute 1: possession for the match doesn\u0027t mean anything yet."
-    ],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Early elite pass sets Harbour Town\u0027s rhythm. Dario Castell\u0027s 33.5m elite pass under pressure to Jamal Yilmaz shows Harbour Town\u0027s control and precision early on, with 100% pass accuracy and 89.5% possession indicating dominance.",
-    "FinalText": "Dario Castell\u0027s precise elite pass under pressure. At minute 1, Castell delivers a 33.5m elite pass under pressure with perfect accuracy to Jamal Yilmaz, showcasing Harbour Town\u0027s early control and composure despite the match just starting."
-  },
-  {
-    "Seed": 7,
-    "Minute": 12,
-    "Kind": "ControlSpell",
-    "Drafts": 3,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 19840,
-    "Rejections": [
-      "Control index 72.7% is for Saltmarsh City, but 52.5% is opponent\u0027s control index, not Harbour Town\u0027s control percentage; tempo of 13.4 passes per minute is combined for both teams, not just Saltmarsh City; momentum -12.2 is for Saltmarsh City but the fact sheet does not specify that negative momentum means recent pressure from Harbour Town",
-      "Momentum of -12.2 is negative, so it does not show Saltmarsh City is on top or strong; the claim misinterprets the negative momentum value."
-    ],
-    "FirstDraft": {
-      "Groundedness": 4,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 4,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Saltmarsh City dominates early control. At 12 minutes, Saltmarsh City holds 72.7% control with a high tempo of 13.4 passes per minute, but momentum is slightly against them at -12.2, showing a complex battle for dominance.",
-    "FinalText": "Saltmarsh City controls possession but momentum lags. Saltmarsh City holds a strong control index of 72.7% at 12 minutes with a combined tempo of 13.4 passes per minute. However, their momentum is negative at -12.2, indicating recent challenges."
-  },
-  {
-    "Seed": 7,
-    "Minute": 14,
-    "Kind": "MomentumSwing",
-    "Drafts": 2,
-    "FirstApproved": false,
-    "Aired": true,
-    "MsToAir": 12903,
-    "Rejections": [
-      "It\u0027s minute 14: possession for the match doesn\u0027t mean anything yet."
-    ],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 4,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Saltmarsh City seizes momentum swing. Saltmarsh City has turned the tide with 55.2 momentum, up from -52.7, controlling possession at 55.2% and dominating the pitch with an 84.3 control index. Their pressing intensity outmatches Harbour Town\u0027s, setting the game\u0027s rhythm.",
-    "FinalText": "Saltmarsh City swings momentum at 14 minutes. Saltmarsh City has flipped momentum from -52.7 to 55.2, showing clear dominance with an 84.3 control index and more intense pressing than Harbour Town, shaping the game\u0027s flow early on."
-  },
-  {
-    "Seed": 7,
-    "Minute": 20,
-    "Kind": "ElitePass",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 6008,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Mensah\u0027s pressured elite pass breaks lines. At 20 minutes, Mensah completes a difficult 29.9m progressive pass under pressure to Jansen, showcasing Saltmarsh City\u0027s growing momentum and control despite a chaotic match rhythm.",
-    "FinalText": "Mensah\u0027s pressured elite pass breaks lines. At 20 minutes, Mensah completes a difficult 29.9m progressive pass under pressure to Jansen, showcasing Saltmarsh City\u0027s growing momentum and control despite a chaotic match rhythm."
-  },
-  {
-    "Seed": 7,
-    "Minute": 22,
-    "Kind": "Goal",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 9901,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Udo Jansen nets clinical opener. At 22 minutes, Jansen scores with a powerful 70.9 km/h shot from close range, rewarding Saltmarsh City\u0027s dominant 56.3% possession and high control (72.6). Their pressing intensity (PPDA 9.2) keeps Harbour Town subdued.",
-    "FinalText": "Udo Jansen nets clinical opener. At 22 minutes, Jansen scores with a powerful 70.9 km/h shot from close range, rewarding Saltmarsh City\u0027s dominant 56.3% possession and high control (72.6). Their pressing intensity (PPDA 9.2) keeps Harbour Town subdued."
-  },
-  {
-    "Seed": 7,
-    "Minute": 22,
-    "Kind": "ControlSpell",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 5846,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 4,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": null,
-    "FirstDraftText": "Saltmarsh City dominates with high control. At 22 minutes, Saltmarsh City holds 80.3% control and a strong tempo of 11.6 passes per minute, reflecting their dominance and sustained pressure on Harbour Town.",
-    "FinalText": "Saltmarsh City dominates with high control. At 22 minutes, Saltmarsh City holds 80.3% control and a strong tempo of 11.6 passes per minute, reflecting their dominance and sustained pressure on Harbour Town."
-  },
-  {
-    "Seed": 7,
-    "Minute": 27,
-    "Kind": "MomentumSwing",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 8239,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 4,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "Final": {
-      "Groundedness": 4,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "SpanishCasual": {
-      "Groundedness": 4,
       "Relevance": 3,
       "Coherence": 3,
       "Fluency": 4
     },
-    "FirstDraftText": "Harbour Town shifts momentum after tough start. After trailing, Harbour Town now leads momentum by 53, showing a significant swing from -81. Their pass accuracy remains solid at 81.6%, but Saltmarsh City still dominates possession at 60.6%.",
-    "FinalText": "Harbour Town shifts momentum after tough start. After trailing, Harbour Town now leads momentum by 53, showing a significant swing from -81. Their pass accuracy remains solid at 81.6%, but Saltmarsh City still dominates possession at 60.6%."
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 3,
+      "Fluency": 4
+    },
+    "SpanishCasual": {
+      "Groundedness": 4,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "FirstDraftText": "Cobalt Park seizes momentum early second half. Cobalt Park swings momentum to \u002B47.4 after being down -55.8, showing strong control at 62.9 and maintaining a high tempo of 14.2 passes per minute. Turnovers remain high at 2.6 per minute, keeping the game intense.",
+    "FinalText": "Cobalt Park seizes momentum early second half. Cobalt Park swings momentum to \u002B47.4 after being down -55.8, showing strong control at 62.9 and maintaining a high tempo of 14.2 passes per minute. Turnovers remain high at 2.6 per minute, keeping the game intense."
   },
   {
-    "Seed": 7,
-    "Minute": 28,
-    "Kind": "PressSurge",
+    "Seed": 3,
+    "Minute": 50,
+    "Kind": "ControlSpell",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 7108,
+    "MsToAir": 11436,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "Final": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Saltmarsh City intensifies pressing surge. Saltmarsh City presses hard with a PPDA of 4.3 in the last 10 minutes, forcing 30 pressures and maintaining 61.9% possession, yet momentum dips -48.9, showing Harbour Town\u0027s resilience.",
-    "FinalText": "Saltmarsh City intensifies pressing surge. Saltmarsh City presses hard with a PPDA of 4.3 in the last 10 minutes, forcing 30 pressures and maintaining 61.9% possession, yet momentum dips -48.9, showing Harbour Town\u0027s resilience."
+    "FirstDraftText": "Cobalt Park dominates possession and tempo. At minute 50, Cobalt Park controls 74% of play with a high tempo of 16.4 passes per minute, sustaining strong momentum and an intense press that limits Ashvale United\u0027s options.",
+    "FinalText": "Cobalt Park dominates possession and tempo. At minute 50, Cobalt Park controls 74% of play with a high tempo of 16.4 passes per minute, sustaining strong momentum and an intense press that limits Ashvale United\u0027s options."
   },
   {
-    "Seed": 7,
-    "Minute": 32,
+    "Seed": 3,
+    "Minute": 51,
     "Kind": "ElitePass",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 10700,
+    "MsToAir": 6050,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -658,42 +370,94 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Fofana\u0027s long progressive pass shifts momentum. At 32 minutes, Elias Fofana completes a difficult 41.8m progressive pass at 89.8 km/h to Tomas Oduya without pressure, boosting Harbour Town\u0027s momentum despite trailing 0-1.",
-    "FinalText": "Fofana\u0027s long progressive pass shifts momentum. At 32 minutes, Elias Fofana completes a difficult 41.8m progressive pass at 89.8 km/h to Tomas Oduya without pressure, boosting Harbour Town\u0027s momentum despite trailing 0-1."
+    "FirstDraftText": "Ibarra\u0027s elite pass under pressure. Kwame Ibarra delivers a 30.5m progressive pass at 67.6 km/h under pressure, showing Cobalt Park\u0027s control and momentum at 51 minutes. This keeps their lead and dominance intact.",
+    "FinalText": "Ibarra\u0027s elite pass under pressure. Kwame Ibarra delivers a 30.5m progressive pass at 67.6 km/h under pressure, showing Cobalt Park\u0027s control and momentum at 51 minutes. This keeps their lead and dominance intact."
+  },
+  {
+    "Seed": 3,
+    "Minute": 56,
+    "Kind": "PressSurge",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 10371,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Cobalt Park steps up intense pressing. At minute 56, Cobalt Park\u0027s pressing intensity has increased significantly with a PPDA of 5.2 in the last 10 minutes, well below their full match average of 8.8. This surge in pressure has generated 68 pressures, signaling a tactical shift to regain control despite trailing 0-1.",
+    "FinalText": "Cobalt Park steps up intense pressing. At minute 56, Cobalt Park\u0027s pressing intensity has increased significantly with a PPDA of 5.2 in the last 10 minutes, well below their full match average of 8.8. This surge in pressure has generated 68 pressures, signaling a tactical shift to regain control despite trailing 0-1."
   },
   {
     "Seed": 7,
-    "Minute": 35,
+    "Minute": 5,
+    "Kind": "ElitePass",
+    "Drafts": 2,
+    "FirstApproved": false,
+    "Aired": true,
+    "MsToAir": 14586,
+    "Rejections": [
+      "It\u0027s minute 5: possession for the match doesn\u0027t mean anything yet."
+    ],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Mensah\u0027s elite pass breaks pressure. At 5 minutes, Gabriel Mensah executes a difficult 42m progressive pass under pressure, completing all his passes with 100% accuracy. This shows Saltmarsh City\u0027s controlled build despite Harbour Town\u0027s higher possession and control.",
+    "FinalText": "Mensah\u0027s precise long pass eases pressure. At 5 minutes, Gabriel Mensah delivers a difficult 42m progressive pass under pressure with perfect accuracy, helping Saltmarsh City build momentum early in the match."
+  },
+  {
+    "Seed": 7,
+    "Minute": 11,
     "Kind": "ControlSpell",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 6881,
+    "MsToAir": 8891,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
-      "Fluency": 3
+      "Fluency": 4
     },
     "Final": {
       "Groundedness": 5,
-      "Relevance": 3,
+      "Relevance": 4,
       "Coherence": 4,
-      "Fluency": 3
+      "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Harbour Town dominates possession but trails. Harbour Town controls 73% possession with a high tempo of 13.8 passes per minute but lags behind 0-1. Opponent\u0027s tighter press with a PPDA of 11.7 limits Harbour Town\u0027s momentum.",
-    "FinalText": "Harbour Town dominates possession but trails. Harbour Town controls 73% possession with a high tempo of 13.8 passes per minute but lags behind 0-1. Opponent\u0027s tighter press with a PPDA of 11.7 limits Harbour Town\u0027s momentum."
+    "FirstDraftText": "Harbour Town dominates early control. At 11 minutes, Harbour Town holds 74% control with a high tempo of 11.8 passes per minute, dictating play despite no shots yet. Saltmarsh City\u0027s intense pressing (PPDA 13.8) challenges their rhythm.",
+    "FinalText": "Harbour Town dominates early control. At 11 minutes, Harbour Town holds 74% control with a high tempo of 11.8 passes per minute, dictating play despite no shots yet. Saltmarsh City\u0027s intense pressing (PPDA 13.8) challenges their rhythm."
   },
   {
     "Seed": 7,
-    "Minute": 39,
+    "Minute": 16,
     "Kind": "ControlSpell",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 7718,
+    "MsToAir": 8491,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -708,77 +472,47 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Saltmarsh City dominates possession and control. At 39 minutes, Saltmarsh City holds 73% control and 60% possession, driving momentum with 14.8 tempo passes per minute. Their intense pressing (PPDA 7.6) contrasts sharply with Harbour Town\u0027s lax press (PPDA 24.5).",
-    "FinalText": "Saltmarsh City dominates possession and control. At 39 minutes, Saltmarsh City holds 73% control and 60% possession, driving momentum with 14.8 tempo passes per minute. Their intense pressing (PPDA 7.6) contrasts sharply with Harbour Town\u0027s lax press (PPDA 24.5)."
+    "FirstDraftText": "Saltmarsh City dominates possession and tempo. At 16 minutes, Saltmarsh City controls 72.7% of the play with a high tempo of 11.8 passes per minute, outpacing Harbour Town\u0027s control and press intensity. This control spells pressure and potential chances.",
+    "FinalText": "Saltmarsh City dominates possession and tempo. At 16 minutes, Saltmarsh City controls 72.7% of the play with a high tempo of 11.8 passes per minute, outpacing Harbour Town\u0027s control and press intensity. This control spells pressure and potential chances."
   },
   {
     "Seed": 7,
-    "Minute": 39,
-    "Kind": "BigChance",
-    "Drafts": 1,
-    "FirstApproved": true,
-    "Aired": true,
-    "MsToAir": 10052,
-    "Rejections": [],
-    "FirstDraft": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "Final": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 3
-    },
-    "SpanishCasual": {
-      "Groundedness": 5,
-      "Relevance": 3,
-      "Coherence": 4,
-      "Fluency": 4
-    },
-    "FirstDraftText": "Jansen\u0027s big chance off target. Udo Jansen\u0027s close-range shot carried a high xG of 0.41 but went off target. Saltmarsh City controls the game with 60.5% possession and strong momentum at 74.4. Their intense pressing limits Harbour Town\u0027s chances.",
-    "FinalText": "Jansen\u0027s big chance off target. Udo Jansen\u0027s close-range shot carried a high xG of 0.41 but went off target. Saltmarsh City controls the game with 60.5% possession and strong momentum at 74.4. Their intense pressing limits Harbour Town\u0027s chances."
-  },
-  {
-    "Seed": 7,
-    "Minute": 41,
+    "Minute": 20,
     "Kind": "MomentumSwing",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 8667,
+    "MsToAir": 9057,
     "Rejections": [],
     "FirstDraft": {
-      "Groundedness": 5,
+      "Groundedness": 4,
       "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "Final": {
-      "Groundedness": 5,
+      "Groundedness": 4,
       "Relevance": 4,
       "Coherence": 4,
       "Fluency": 4
     },
     "SpanishCasual": {
       "Groundedness": 4,
-      "Relevance": 4,
+      "Relevance": 3,
       "Coherence": 4,
-      "Fluency": 4
+      "Fluency": 3
     },
-    "FirstDraftText": "Saltmarsh City seizes momentum swing. Saltmarsh City has turned the tide with a momentum swing from -72 to \u002B55.7, dominating possession at 60.1% and controlling the game with an 87.4 control index. Their intense pressing (PPDA 10.8) contrasts sharply with Harbour Town\u0027s lax 54, signaling Saltmarsh City\u0027s grip on the match.",
-    "FinalText": "Saltmarsh City seizes momentum swing. Saltmarsh City has turned the tide with a momentum swing from -72 to \u002B55.7, dominating possession at 60.1% and controlling the game with an 87.4 control index. Their intense pressing (PPDA 10.8) contrasts sharply with Harbour Town\u0027s lax 54, signaling Saltmarsh City\u0027s grip on the match."
+    "FirstDraftText": "Harbour Town seizes momentum at 20 minutes. Harbour Town swings from negative to positive momentum, now controlling 74% of play with 57.7 momentum. Saltmarsh City\u0027s intense press yields turnovers but no goals yet.",
+    "FinalText": "Harbour Town seizes momentum at 20 minutes. Harbour Town swings from negative to positive momentum, now controlling 74% of play with 57.7 momentum. Saltmarsh City\u0027s intense press yields turnovers but no goals yet."
   },
   {
     "Seed": 7,
-    "Minute": 43,
-    "Kind": "ElitePass",
+    "Minute": 21,
+    "Kind": "ControlSpell",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 6339,
+    "MsToAir": 9117,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -793,17 +527,107 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Marsh\u0027s pressured elite pass advances Saltmarsh. Rafael Marsh completes a difficult, progressive 32.6m pass under pressure to Nico Yilmaz, boosting Saltmarsh City\u0027s dominant momentum and control late in the half.",
-    "FinalText": "Marsh\u0027s pressured elite pass advances Saltmarsh. Rafael Marsh completes a difficult, progressive 32.6m pass under pressure to Nico Yilmaz, boosting Saltmarsh City\u0027s dominant momentum and control late in the half."
+    "FirstDraftText": "Harbour Town dominates possession and tempo. At 21 minutes, Harbour Town controls 82% possession with a high tempo of 12.8 passes per minute, showing clear dominance over Saltmarsh City\u0027s 51.5 control index. Momentum favors Harbour Town at \u002B61.3.",
+    "FinalText": "Harbour Town dominates possession and tempo. At 21 minutes, Harbour Town controls 82% possession with a high tempo of 12.8 passes per minute, showing clear dominance over Saltmarsh City\u0027s 51.5 control index. Momentum favors Harbour Town at \u002B61.3."
   },
   {
     "Seed": 7,
-    "Minute": 46,
+    "Minute": 21,
+    "Kind": "Goal",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 11379,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 3
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 3
+    },
+    "SpanishCasual": {
+      "Groundedness": 4,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "FirstDraftText": "Oduya nets clinical finish from close range. Tomas Oduya scores his first goal with a powerful 75 km/h shot from 3.3m, assisted by Elias Fofana. Harbour Town leads with strong control and momentum at 21 minutes.",
+    "FinalText": "Oduya nets clinical finish from close range. Tomas Oduya scores his first goal with a powerful 75 km/h shot from 3.3m, assisted by Elias Fofana. Harbour Town leads with strong control and momentum at 21 minutes."
+  },
+  {
+    "Seed": 7,
+    "Minute": 27,
+    "Kind": "ControlSpell",
+    "Drafts": 3,
+    "FirstApproved": false,
+    "Aired": true,
+    "MsToAir": 28271,
+    "Rejections": [
+      "\u0022always\u0022: \u0027Always\u0027 is a certainty the data can\u0027t support.",
+      "Saltmarsh City leads in team control at 72.1% versus Harbour Town\u0027s 58.5% is correct.",
+      "Saltmarsh City maintains a high tempo with 7.8 passes per minute is correct.",
+      "Saltmarsh City\u0027s momentum is -3, but this means Saltmarsh City is slightly behind, not that their momentum is negative itself; the claim that momentum is negative \u0027indicating Harbour Town\u0027s recent edge\u0027 is an interpretation not directly supported by the fact."
+    ],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 4,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Saltmarsh City dominates possession and tempo. Saltmarsh City controls 72% of play with a high tempo of 7.8 passes per minute, outpacing Harbour Town\u0027s control at 58.5%. Despite this, Saltmarsh trails 1-0, showing control doesn\u0027t always equal goals.",
+    "FinalText": "Saltmarsh City controls play with high tempo. Saltmarsh City holds 72.1% control and a tempo of 7.8 passes per minute, surpassing Harbour Town\u0027s 58.5%. Momentum for Saltmarsh City is -3, reflecting recent match dynamics."
+  },
+  {
+    "Seed": 7,
+    "Minute": 28,
+    "Kind": "MomentumSwing",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 9136,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 3
+    },
+    "FirstDraftText": "Saltmarsh City seizes control with momentum swing. Saltmarsh City has surged into control with momentum now at \u002B80.6, up from -85.1, showing a major shift in dominance. Their team control index at 83 outpaces Harbour Town\u0027s 53.3, signaling Saltmarsh\u0027s grip on the game despite trailing 1-0.",
+    "FinalText": "Saltmarsh City seizes control with momentum swing. Saltmarsh City has surged into control with momentum now at \u002B80.6, up from -85.1, showing a major shift in dominance. Their team control index at 83 outpaces Harbour Town\u0027s 53.3, signaling Saltmarsh\u0027s grip on the game despite trailing 1-0."
+  },
+  {
+    "Seed": 7,
+    "Minute": 30,
     "Kind": "ElitePass",
     "Drafts": 1,
     "FirstApproved": true,
     "Aired": true,
-    "MsToAir": 6625,
+    "MsToAir": 11323,
     "Rejections": [],
     "FirstDraft": {
       "Groundedness": 5,
@@ -818,7 +642,167 @@
       "Fluency": 4
     },
     "SpanishCasual": null,
-    "FirstDraftText": "Rafael Marsh\u0027s precise elite pass shifts momentum. At minute 46, Rafael Marsh delivers a high-speed, long-range progressive pass to Udo Jansen, under no pressure. Saltmarsh City holds strong momentum and control, pressing intensely with a low PPDA, dominating possession and chance quality.",
-    "FinalText": "Rafael Marsh\u0027s precise elite pass shifts momentum. At minute 46, Rafael Marsh delivers a high-speed, long-range progressive pass to Udo Jansen, under no pressure. Saltmarsh City holds strong momentum and control, pressing intensely with a low PPDA, dominating possession and chance quality."
+    "FirstDraftText": "Long elite pass breaks Saltmarsh lines. Gabriel Mensah\u0027s 42.3m elite pass to Udo Jansen is progressive and under no pressure, showing Saltmarsh City\u0027s control and momentum despite trailing 1-0 at 30 minutes.",
+    "FinalText": "Long elite pass breaks Saltmarsh lines. Gabriel Mensah\u0027s 42.3m elite pass to Udo Jansen is progressive and under no pressure, showing Saltmarsh City\u0027s control and momentum despite trailing 1-0 at 30 minutes."
+  },
+  {
+    "Seed": 7,
+    "Minute": 35,
+    "Kind": "Goal",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 13458,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 3
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 3
+    },
+    "SpanishCasual": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "FirstDraftText": "Oduya\u0027s close-range strike doubles lead. Tomas Oduya scores his second goal with a powerful 75.8 km/h shot from 3.4 meters, boosting Harbour Town\u0027s xG to 1.74. Despite less possession, Harbour Town capitalizes clinicaly on chances.",
+    "FinalText": "Oduya\u0027s close-range strike doubles lead. Tomas Oduya scores his second goal with a powerful 75.8 km/h shot from 3.4 meters, boosting Harbour Town\u0027s xG to 1.74. Despite less possession, Harbour Town capitalizes clinicaly on chances."
+  },
+  {
+    "Seed": 7,
+    "Minute": 37,
+    "Kind": "ControlSpell",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 7153,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Saltmarsh City dominates possession and control. At 37 minutes, Saltmarsh City holds 76.5 control with 11 tempo passes per minute, but their momentum is negative while trailing 2-0. Harbour Town presses more intensely, limiting Saltmarsh\u0027s threat.",
+    "FinalText": "Saltmarsh City dominates possession and control. At 37 minutes, Saltmarsh City holds 76.5 control with 11 tempo passes per minute, but their momentum is negative while trailing 2-0. Harbour Town presses more intensely, limiting Saltmarsh\u0027s threat."
+  },
+  {
+    "Seed": 7,
+    "Minute": 39,
+    "Kind": "PressSurge",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 13791,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Harbour Town intensifies pressing at 39 minutes. Harbour Town has ramped up their pressing with a PPDA of 7.3 in the last 10 minutes, well below their match average of 13.4, creating 25 pressures and maintaining strong momentum at \u002B40.5.",
+    "FinalText": "Harbour Town intensifies pressing at 39 minutes. Harbour Town has ramped up their pressing with a PPDA of 7.3 in the last 10 minutes, well below their match average of 13.4, creating 25 pressures and maintaining strong momentum at \u002B40.5."
+  },
+  {
+    "Seed": 7,
+    "Minute": 40,
+    "Kind": "ControlSpell",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 10761,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 3,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Harbour Town dominates with high control. At 40 minutes, Harbour Town holds 74.1 control and 78.4 momentum, pressing intensely with a 6.4 PPDA. Their tempo of 9.6 passes per minute keeps Saltmarsh City on the back foot.",
+    "FinalText": "Harbour Town dominates with high control. At 40 minutes, Harbour Town holds 74.1 control and 78.4 momentum, pressing intensely with a 6.4 PPDA. Their tempo of 9.6 passes per minute keeps Saltmarsh City on the back foot."
+  },
+  {
+    "Seed": 7,
+    "Minute": 40,
+    "Kind": "MomentumSwing",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 12638,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "FirstDraftText": "Harbour Town surges with dominant momentum. Harbour Town flips momentum from -89.6 to \u002B78.4, showing control at 74.1 against Saltmarsh City\u0027s 48. Their intense pressing (PPDA 6.4) forces turnovers at 1.2 per minute, driving their 2-0 lead.",
+    "FinalText": "Harbour Town surges with dominant momentum. Harbour Town flips momentum from -89.6 to \u002B78.4, showing control at 74.1 against Saltmarsh City\u0027s 48. Their intense pressing (PPDA 6.4) forces turnovers at 1.2 per minute, driving their 2-0 lead."
+  },
+  {
+    "Seed": 7,
+    "Minute": 42,
+    "Kind": "ElitePass",
+    "Drafts": 1,
+    "FirstApproved": true,
+    "Aired": true,
+    "MsToAir": 10051,
+    "Rejections": [],
+    "FirstDraft": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "Final": {
+      "Groundedness": 5,
+      "Relevance": 4,
+      "Coherence": 4,
+      "Fluency": 4
+    },
+    "SpanishCasual": null,
+    "FirstDraftText": "Long pressured pass breaks Saltmarsh press. Dario Castell delivers a high-speed, progressive 40m pass under pressure to Jamal Yilmaz, highlighting Harbour Town\u0027s ability to bypass Saltmarsh City\u0027s high PPDA press and create chances despite negative momentum.",
+    "FinalText": "Long pressured pass breaks Saltmarsh press. Dario Castell delivers a high-speed, progressive 40m pass under pressure to Jamal Yilmaz, highlighting Harbour Town\u0027s ability to bypass Saltmarsh City\u0027s high PPDA press and create chances despite negative momentum."
   }
 ]

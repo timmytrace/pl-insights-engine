@@ -168,9 +168,9 @@ The live crew is measured on real simulated matches with `Microsoft.Extensions.A
 using the Foundry deployment as the judge: groundedness against the fact sheet, relevance,
 coherence and fluency, for The Gaffer's first drafts and for what aired, plus Ref's record and
 time to air. The first run found Ref was rejecting pitches over citation format rather than
-facts; after fixing that, first-time approval rose from 53% to 77% and the median time from
-moment to verified card fell from 10.8 s to 8.5 s. Full report:
-[`docs/evaluation`](docs/evaluation/README.md).
+facts; fixing that raised first-time approval from 53% to 77% on the same matches. On the current,
+recalibrated simulator Ref approves 87% of pitches first time, and the median time from moment
+to verified card is 9.9 s. Full report: [`docs/evaluation`](docs/evaluation/README.md).
 
 ```bash
 cd backend && dotnet run --project src/Studio.Cli -c Release -- evaluate --azure https://<your-resource>.openai.azure.com/
@@ -199,8 +199,10 @@ functions to decide outcomes, so a pass rated difficult really was less likely t
 | Control (0–100) | Last 5 min: possession share, pass accuracy, passes per possession |
 | Chaos (0–100) | Last 5 min: turnovers per minute, share of actions under pressure, fouls |
 
-Across 20 simulated matches a team averages about 1.5 goals, 10 shots, 570 passes and 81%
-pass accuracy. A test keeps those averages in a realistic range.
+Across 100 simulated matches a team averages 1.47 goals, 1.43 xG, 12.2 shots and 81% pass
+accuracy (2.9 goals per match, 0–0 in 7%), in line with real top-flight football. A test keeps
+those averages in a realistic range; the data card in [`data/synthetic`](data/synthetic/README.md)
+has the full distributions.
 
 ## Synthetic data
 
@@ -349,7 +351,8 @@ frontend/             React + TypeScript + Vite overlay UI
 infra/                Bicep template and deploy script for Azure Container Apps
 data/sample/          committed synthetic dataset
 docs/samples/         a recorded full-time recap
-docs/evaluation/      the crew's evaluation reports (before and after the citation fix)
+docs/evaluation/      the crew's evaluation report, with earlier runs in history/
+docs/submission/      the hackathon pitch and demo video script
 data/synthetic/       100-match summary, event CSVs and the data card
 ```
 

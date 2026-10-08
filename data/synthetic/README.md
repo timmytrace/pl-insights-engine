@@ -56,23 +56,30 @@ direct), which gives the insight engine real stories to discover from the data a
 
 | Measure | Mean | SD | p10 | p90 | Real top-flight reference |
 |---|---|---|---|---|---|
-| Goals | 1.91 | 1.52 | 0 | 4 | ≈1.4 |
-| xG | 1.89 | 1.11 | 0.61 | 3.52 | ≈1.4 |
-| Shots | 10.9 | 4.5 | 6 | 17 | ≈12–13 |
-| Shots on target | 5.5 | 2.9 | 2 | 9 | ≈4–5 |
-| Passes | 569 | 68 | 485 | 658 | ≈450–550 |
-| Pass accuracy | 80.7% | 3.0 | 77.2% | 84.4% | ≈80–85% |
-| Possession | 50.0% | 5.2 | 43.5% | 56.5% | n/a |
+| Goals | 1.47 | 1.23 | 0 | 3 | ≈1.4 |
+| xG | 1.43 | 0.86 | 0.38 | 2.63 | ≈1.4 |
+| Shots | 12.2 | 4.3 | 7 | 18 | ≈12–13 |
+| Shots on target | 4.8 | 2.4 | 2 | 8 | ≈4–5 |
+| xG per shot | 0.117 | | | | ≈0.11 |
+| Passes | 565 | 65 | 486 | 656 | ≈450–550 |
+| Pass accuracy | 80.7% | 3.0 | 76.6% | 84.5% | ≈80–85% |
+| Possession | 50.0% | 5.0 | 43.6% | 56.4% | n/a |
 | PPDA | 8.4 (median 8.2) | | | | ≈8–15 |
 
-Per match: home win 44%, draw 21%, ≈2,020 events, ≈93 minutes including stoppage time.
+Per match: 2.93 goals, 0–0 in 7%, home win 36%, draw 28%, ≈2,030 events, ≈93 minutes
+including stoppage time.
+
+## Calibration
+
+The first version produced about 3.8 goals per match with too many close-range chances (xG per
+shot ≈0.17). It was tuned against the reference figures above: shots are now also taken from
+distance, the penalty area is more crowded (passes and carries into it fail more often), and
+more shots are blocked or miss the target. Passing was unaffected.
 
 ## Known deviations
 
-- **Too many goals.** About 3.8 per match against ≈2.7–2.9 in real top-flight football, and
-  0–0 draws are rare (1%). The simulator creates too many close-range chances, so xG per shot
-  (≈0.17) is higher than real (≈0.11). Fine for demonstrating insight and narrative; not for
-  calibrating betting or scouting models.
+- **Passing volume is a little high** (≈565 per team against ≈450–550), because the possession
+  chain never pauses for long balls out of play as often as real matches do.
 - **Positional model, not physics.** Tracking frames come from a team-shape model that shifts
   with the ball. Players move between events rather than continuously.
 - **No set-piece detail.** Corners and free kicks restart play but aren't modelled as distinct
